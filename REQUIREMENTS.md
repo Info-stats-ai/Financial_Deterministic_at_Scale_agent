@@ -35,7 +35,8 @@ automated verification, and demonstration evidence are all present.
 | Offline/no-live-services path | HAR-backed demo mode | offline integration test | README command | Complete |
 | README exact setup/demo commands | `/README.md` | command smoke test | repository root | Complete |
 | REPORT exact seven headings | `/REPORT.md` | heading validation test | repository root | Complete |
-| Agent-facing catalog + invoke | `catalog.py` + CLI | catalog tests | README Demo 6 | Complete |
+| Agent-facing catalog + invoke | `catalog.py` + CLI | catalog tests | README Demo 7 | Complete |
+| Reliability eval + approval gate | `eval/` + `capability evaluate` | `test_eval.py` | `/evidence/eval/` | Complete |
 | Public GitHub repository | configured `origin` | remote and clean-tree checks | public URL | Pushed |
 
 ## Explicit acceptance gates

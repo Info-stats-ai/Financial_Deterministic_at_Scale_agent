@@ -19,6 +19,8 @@ from interface_ai.catalog import CapabilityCatalog, CatalogError
 from interface_ai.core.session import SessionManager
 from interface_ai.discovery.anthropic_client import ClaudeComputerClient
 from interface_ai.discovery.loop import DiscoveryLoop, DiscoveryResult
+from interface_ai.eval.runner import EvaluationRunner, default_healthcare_scenarios
+from interface_ai.eval.score import EvalReport
 from interface_ai.evidence.recorder import EvidenceRecorder
 from interface_ai.handoff.controller import HandoffController
 from interface_ai.replay.engine import ReplayEngine
@@ -349,13 +351,24 @@ def invoke(
     headless: Annotated[bool, typer.Option()] = True,
     offline_har: Annotated[Path | None, typer.Option(exists=True)] = None,
     evidence_label: Annotated[str | None, typer.Option()] = None,
+    allow_draft: Annotated[
+        bool,
+        typer.Option(help="Allow invoke of artifacts not approved by evaluate"),
+    ] = False,
 ) -> None:
     """Invoke a cataloged capability by name. This is the agent-facing production path."""
 
     try:
-        artifact_path = CapabilityCatalog(directory).path_for(name)
+        catalog = CapabilityCatalog(directory)
+        artifact_path = catalog.path_for(name)
+        artifact = catalog.get(name)
     except CatalogError as exc:
         raise typer.BadParameter(str(exc)) from exc
+    if not artifact.metadata.approved_for_unattended_replay and not allow_draft:
+        raise typer.BadParameter(
+            f"{name} is a draft. Run `capability evaluate --promote` after it meets "
+            "reliability gates, or pass --allow-draft."
+        )
     replay(
         artifact_path=artifact_path,
         param=param,
@@ -366,6 +379,94 @@ def invoke(
         offline_har=offline_har,
         evidence_label=evidence_label or f"invoke-{name.replace('_', '-')}",
     )
+
+
+def _promote_if_passed(artifact: CapabilityArtifact, path: Path, report: EvalReport) -> None:
+    if not report.passed:
+        raise typer.BadParameter(
+            "evaluation gates failed; refusing to set approved_for_unattended_replay"
+        )
+    promoted = artifact.model_copy(
+        update={
+            "metadata": artifact.metadata.model_copy(
+                update={
+                    "approved_for_unattended_replay": True,
+                    "tags": list(dict.fromkeys([*artifact.metadata.tags, "eval-promoted"])),
+                }
+            ),
+            "content_hash": None,
+        }
+    )
+    save_artifact(promoted, path)
+
+
+@app.command()
+def evaluate(
+    artifact_path: Annotated[Path, typer.Option("--artifact", exists=True)],
+    repeats: Annotated[int, typer.Option(min=1, max=20)] = 5,
+    policy_path: Annotated[Path, typer.Option()] = Path("config/policy.yaml"),
+    offline_har: Annotated[Path | None, typer.Option(exists=True)] = Path(
+        "evidence/fixtures/cloudcruise-healthcare.har"
+    ),
+    headless: Annotated[bool, typer.Option()] = True,
+    promote: Annotated[
+        bool,
+        typer.Option(help="If all gates pass, mark the artifact approved for unattended replay"),
+    ] = False,
+) -> None:
+    """Score replay reliability. This is how a skill is promoted, not how a model is trained."""
+
+    load_dotenv()
+    artifact = load_artifact(artifact_path)
+    credentials = {
+        reference.name: os.environ[reference.name]
+        for reference in artifact.credential_references
+        if reference.name in os.environ
+    }
+    missing = [
+        reference.name
+        for reference in artifact.credential_references
+        if reference.name not in credentials
+    ]
+    if missing:
+        raise typer.BadParameter(f"missing runtime credentials: {missing}")
+    policy = load_policy(policy_path)
+    redactor = Redactor(policy.redaction)
+    work_dir = Path("evidence/runtime") / f"eval-{artifact.name}"
+    report = asyncio.run(
+        EvaluationRunner(
+            artifact,
+            credentials=credentials,
+            policy_gate=PolicyGate(policy),
+            redactor=redactor,
+            offline_har=offline_har,
+            work_dir=work_dir,
+            headless=headless,
+        ).run(default_healthcare_scenarios(), repeats=repeats)
+    )
+    out_dir = Path("evidence/eval")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    report_path = out_dir / f"{artifact.name}.eval.json"
+    EvidenceRecorder(
+        out_dir,
+        run_id=f"eval-{artifact.name}",
+        redactor=redactor,
+        secret_values=[*credentials.values()],
+    ).write_json(report_path.name, report.model_dump(mode="json"))
+    if promote:
+        _promote_if_passed(artifact, artifact_path, report)
+        report = report.model_copy(
+            update={"notes": [*report.notes, f"promoted {artifact_path}"]}
+        )
+        EvidenceRecorder(
+            out_dir,
+            run_id=f"eval-{artifact.name}",
+            redactor=redactor,
+            secret_values=[*credentials.values()],
+        ).write_json(report_path.name, report.model_dump(mode="json"))
+    typer.echo(json.dumps(redactor.redact(report.model_dump(mode="json")), indent=2))
+    if not report.passed:
+        raise typer.Exit(code=2)
 
 
 if __name__ == "__main__":

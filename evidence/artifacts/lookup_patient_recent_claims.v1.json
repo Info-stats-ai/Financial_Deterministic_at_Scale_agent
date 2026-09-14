@@ -436,12 +436,13 @@
     "recorded_at": "2026-09-14T02:40:30.617848Z",
     "recorded_by": "human_reviewed_fixture",
     "source_run_id": "reviewed-golden-before-live-discovery",
-    "approved_for_unattended_replay": false,
+    "approved_for_unattended_replay": true,
     "tags": [
       "public-demo",
       "synthetic-data",
-      "golden-fixture"
+      "golden-fixture",
+      "eval-promoted"
     ]
   },
-  "content_hash": "sha256:e5c700ff887335e4b932185cf3c1f40fd6ca0ab9270b09d44e9618145e293a1e"
+  "content_hash": "sha256:6fc6023896d060df027b0f9e598e9405843b715699ac1fd23b0c58fdb1f917a7"
 }

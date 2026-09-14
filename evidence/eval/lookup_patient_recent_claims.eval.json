@@ -1,0 +1,231 @@
+{
+  "artifact_hash": "sha256:e5c700ff887335e4b932185cf3c1f40fd6ca0ab9270b09d44e9618145e293a1e",
+  "capability_name": "lookup_patient_recent_claims",
+  "capability_version": "1.0.0",
+  "composite": 99.81,
+  "evaluated_at": "2026-09-14T10:05:56.307032Z",
+  "gates": {
+    "business_outcome_fidelity": true,
+    "composite": true,
+    "contract_score": true,
+    "coordinate_fallback": true,
+    "happy_path_success_rate": true,
+    "locator_quality": true,
+    "no_policy_denials": true,
+    "output_determinism": true
+  },
+  "metrics": {
+    "business_outcome_fidelity": 1.0,
+    "composite": 99.81,
+    "contract_contract_score": 0.9808,
+    "contract_coordinate_rank1_count": 0.0,
+    "contract_has_business_rule": 1.0,
+    "contract_locator_count": 12.0,
+    "contract_locator_quality": 0.885,
+    "contract_parameterized_locators": 1.0,
+    "contract_score": 0.9808,
+    "coordinate_fallback_rate": 0.0,
+    "happy_path_success_rate": 1.0,
+    "locator_quality": 0.885,
+    "mean_duration_ms": 5682.6,
+    "output_determinism": 1.0,
+    "policy_denials": 0.0
+  },
+  "notes": [
+    "happy_path 5/5 success",
+    "not_found 5/5 PATIENT_NOT_FOUND",
+    "unique successful output fingerprints=1",
+    "locator kinds={'role_name': 45, 'xpath': 5}",
+    "promoted evidence/artifacts/lookup_patient_recent_claims.v1.json"
+  ],
+  "passed": true,
+  "recommendation": "approve_unattended_replay",
+  "repeats": 5,
+  "trials": [
+    {
+      "duration_ms": 10247,
+      "failure_code": null,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name",
+        "xpath",
+        "role_name"
+      ],
+      "outcome_code": null,
+      "outputs": {
+        "insurance": "[REDACTED]",
+        "latest_claim": "[REDACTED]",
+        "patient_name": "[REDACTED]",
+        "patient_status": "Active"
+      },
+      "policy_denied": false,
+      "scenario": "happy_path",
+      "status": "success"
+    },
+    {
+      "duration_ms": 7105,
+      "failure_code": null,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name",
+        "xpath",
+        "role_name"
+      ],
+      "outcome_code": null,
+      "outputs": {
+        "insurance": "[REDACTED]",
+        "latest_claim": "[REDACTED]",
+        "patient_name": "[REDACTED]",
+        "patient_status": "Active"
+      },
+      "policy_denied": false,
+      "scenario": "happy_path",
+      "status": "success"
+    },
+    {
+      "duration_ms": 7869,
+      "failure_code": null,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name",
+        "xpath",
+        "role_name"
+      ],
+      "outcome_code": null,
+      "outputs": {
+        "insurance": "[REDACTED]",
+        "latest_claim": "[REDACTED]",
+        "patient_name": "[REDACTED]",
+        "patient_status": "Active"
+      },
+      "policy_denied": false,
+      "scenario": "happy_path",
+      "status": "success"
+    },
+    {
+      "duration_ms": 6046,
+      "failure_code": null,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name",
+        "xpath",
+        "role_name"
+      ],
+      "outcome_code": null,
+      "outputs": {
+        "insurance": "[REDACTED]",
+        "latest_claim": "[REDACTED]",
+        "patient_name": "[REDACTED]",
+        "patient_status": "Active"
+      },
+      "policy_denied": false,
+      "scenario": "happy_path",
+      "status": "success"
+    },
+    {
+      "duration_ms": 4246,
+      "failure_code": null,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name",
+        "xpath",
+        "role_name"
+      ],
+      "outcome_code": null,
+      "outputs": {
+        "insurance": "[REDACTED]",
+        "latest_claim": "[REDACTED]",
+        "patient_name": "[REDACTED]",
+        "patient_status": "Active"
+      },
+      "policy_denied": false,
+      "scenario": "happy_path",
+      "status": "success"
+    },
+    {
+      "duration_ms": 4278,
+      "failure_code": null,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": "PATIENT_NOT_FOUND",
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "not_found",
+      "status": "business_outcome"
+    },
+    {
+      "duration_ms": 3892,
+      "failure_code": null,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": "PATIENT_NOT_FOUND",
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "not_found",
+      "status": "business_outcome"
+    },
+    {
+      "duration_ms": 4519,
+      "failure_code": null,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": "PATIENT_NOT_FOUND",
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "not_found",
+      "status": "business_outcome"
+    },
+    {
+      "duration_ms": 4416,
+      "failure_code": null,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": "PATIENT_NOT_FOUND",
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "not_found",
+      "status": "business_outcome"
+    },
+    {
+      "duration_ms": 4208,
+      "failure_code": null,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": "PATIENT_NOT_FOUND",
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "not_found",
+      "status": "business_outcome"
+    }
+  ]
+}

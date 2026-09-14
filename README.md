@@ -18,14 +18,26 @@ CLI
  └─ Orchestrator
      ├─ DiscoveryLoop ── Claude computer toolset ──┐
      ├─ ReplayEngine (no LLM)                     ├─ PlaywrightWebSurface
+     ├─ EvaluationRunner (N-run reliability)      │
      ├─ PolicyGate + Redactor                     │
      ├─ HandoffController + Operator Console ─────┘
      └─ EvidenceRecorder ── JSONL / JSON / masked PNG / HAR
 ```
 
 `SurfaceDriver` is the web/desktop seam. The artifact, policy, and replay contracts do not
-depend on model transcripts. See [REPORT.md](REPORT.md) for decisions and
-[LEARNING.md](LEARNING.md) for the phase-by-phase system-design journal.
+depend on model transcripts. See [REPORT.md](REPORT.md) for STAR answers to the brief's
+design questions and [LEARNING.md](LEARNING.md) for the phase-by-phase journal.
+
+## How the deterministic path is authored (not trained)
+
+There is no model fine-tuning. The JSON artifact *is* the skill.
+
+| STAR | What happens |
+|---|---|
+| **Situation** | Production cannot afford Claude on every member lookup. |
+| **Task** | Learn the UI once; replay many times with typed args and no LLM. |
+| **Action** | Claude discovers with screenshots/coordinates. The compiler writes a **draft** artifact (ranked locators, `{member_id}`, checkpoints, outcome rules). A human reviews it into the golden file. Replay is a state machine: unique locator, declared waits, `PATIENT_NOT_FOUND` vs hard failure. |
+| **Result** | Golden eval composite **99.81** (5/5 success, 5/5 not-found). `invoke` is gated on that approval. A new version is a new reviewed hash, not a training job. Offline HAR only restages the site. |
 
 ## Prerequisites
 
@@ -135,7 +147,25 @@ uv run capability replay \
 
 No `ANTHROPIC_API_KEY` is needed. The public demo credentials remain in `.env`.
 
-## Demo 6: agent-facing capability catalog
+## Demo 6: evaluate reliability and promote
+
+Replay is scored, not trained. This command repeats the happy path and the not-found
+outcome against the offline HAR, then writes a gate report. `--promote` sets
+`approved_for_unattended_replay` only if every gate passes.
+
+```bash
+uv run capability evaluate \
+  --artifact evidence/artifacts/lookup_patient_recent_claims.v1.json \
+  --repeats 5 \
+  --offline-har evidence/fixtures/cloudcruise-healthcare.har \
+  --promote
+```
+
+Gates: 100% happy-path success, 100% `PATIENT_NOT_FOUND` fidelity, identical outputs,
+zero coordinate fallback, locator quality ≥ 0.70, composite ≥ 90. Report:
+`evidence/eval/lookup_patient_recent_claims.eval.json`.
+
+## Demo 7: agent-facing capability catalog
 
 An upstream agent should not open a JSON file. It should discover a named tool with a
 typed input schema, then invoke it.
@@ -152,7 +182,7 @@ uv run capability invoke \
 `catalog` prints the tool/function-calling contract. `invoke` is a thin wrapper over
 deterministic replay, so production callers never enter the discovery loop.
 
-## Demo 7: same-session human handoff
+## Demo 8: same-session human handoff
 
 Start with a deliberately wrong synthetic password:
 

@@ -5,8 +5,11 @@ institution, account, or credential data is present.
 
 ## Curated files
 
-- `artifacts/lookup_patient_recent_claims.v1.json` — reviewed, hashed artifact used by
-  production-style replay and `capability invoke`.
+- `artifacts/lookup_patient_recent_claims.v1.json` — reviewed, eval-promoted artifact
+  (`approved_for_unattended_replay: true`).
+- `eval/lookup_patient_recent_claims.eval.json` — 5× happy path + 5× not-found offline
+  score (composite 99.81, all gates passed).
+- `eval/discovery-live.contract.json` — static score of the live draft (fails promotion).
 - `discovery/discovery-live/` — genuine Anthropic computer-use run (not a fake-model test).
 - `replay/replay-success/` — model-free successful replay with redacted typed outputs.
 - `replay/replay-not-found/` — expected `PATIENT_NOT_FOUND` business outcome, not a crash.
@@ -32,6 +35,6 @@ evidence/discovery/discovery-live/
   result.json
 ```
 
-`artifact.json` is a **draft** (`approved_for_unattended_replay: false`). Replay it to see
-what the compiler emitted. Unattended production replay uses the reviewed golden file
-under `artifacts/`.
+`artifact.json` is a **draft** (`approved_for_unattended_replay: false`). It is not
+promoted because it has no business-outcome rule and uses brittle CSS. Unattended
+`capability invoke` uses the reviewed golden file under `artifacts/` after `evaluate --promote`.

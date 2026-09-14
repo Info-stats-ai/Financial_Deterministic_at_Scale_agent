@@ -27,6 +27,7 @@ def test_readme_has_exact_discovery_replay_and_offline_commands() -> None:
     assert "uv run capability replay" in readme
     assert "uv run capability catalog" in readme
     assert "uv run capability invoke" in readme
+    assert "uv run capability evaluate" in readme
     assert "evidence/discovery/discovery-live/artifact.json" in readme
     assert "evidence/artifacts/lookup_patient_recent_claims.v1.json" in readme
     assert "--offline-har evidence/fixtures/cloudcruise-healthcare.har" in readme
@@ -60,6 +61,14 @@ def test_curated_artifact_and_replay_evidence_are_valid() -> None:
         Path("evidence/artifacts/lookup_patient_recent_claims.v1.json")
     )
     assert artifact.verify_content_hash()
+    assert artifact.metadata.approved_for_unattended_replay is True
+    eval_report = json.loads(
+        Path("evidence/eval/lookup_patient_recent_claims.eval.json").read_text()
+    )
+    assert eval_report["passed"] is True
+    assert eval_report["composite"] >= 90
+    assert eval_report["metrics"]["happy_path_success_rate"] == 1.0
+    assert eval_report["metrics"]["business_outcome_fidelity"] == 1.0
 
     expected = {
         "replay-success": "success",

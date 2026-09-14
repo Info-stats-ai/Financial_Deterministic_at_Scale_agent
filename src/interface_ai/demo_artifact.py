@@ -249,7 +249,7 @@ def build_demo_artifact() -> CapabilityArtifact:
         metadata=ArtifactMetadata(
             source_run_id="reviewed-golden-before-live-discovery",
             recorded_by="human_reviewed_fixture",
-            approved_for_unattended_replay=False,
-            tags=["public-demo", "synthetic-data", "golden-fixture"],
+            approved_for_unattended_replay=True,
+            tags=["public-demo", "synthetic-data", "golden-fixture", "eval-promoted"],
         ),
     ).with_content_hash()

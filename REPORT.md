@@ -1,176 +1,158 @@
 # Architecture
 
-The system is an async Python modular monolith with explicit boundaries: `DiscoveryLoop`
-owns stochastic authoring, `CapabilityArtifact` is the durable contract, `ReplayEngine`
-owns deterministic execution, `PolicyGate` authorizes actions, `SessionManager` owns one
-browser context, and `EvidenceRecorder` owns redacted persistence. A single process is the
-right operational cut for this take-home: the browser and operator console share one event
-loop and there is no distributed-session coordination. The modules are nevertheless ports
-that can become services if load requires it.
+**Situation.** US bank and credit-union staff work in back-office apps with no API. The UI
+for a given vendor product is fairly stable; the expensive mistake is calling an LLM on
+every lookup. Production must invoke a reusable capability, not a chat.
 
-Discovery uses Anthropic's GA `computer_toolset_20260801` with Claude Sonnet 5. Claude sees
-screenshots plus a capped accessibility-oriented summary, then issues pixel-space mouse and
-keyboard calls. Playwright executes them against CloudCruise United's third-party public
-synthetic healthcare automation demo. This target was selected because it has a multi-step
-login→search→select→claims flow, shuffled table columns, version/error variants, and no real
-users or credentials. The system does not call the demo's API or inspect hidden DOM during
-model decision-making.
+**Task.** Build a small end-to-end record→replay system: natural-language goal, real UI
+control, typed artifact, deterministic replay, same-session human handoff, and safety —
+against one concrete surface, designed so the contracts could extend.
 
-The computer-use adapter captures the actual element under a successful coordinate action.
-`LocatorHarvester` turns that fingerprint into ranked semantic, structural, and normalized-
-coordinate candidates. `ArtifactCompiler` binds typed text to declared parameters or
-runtime credential references; an unknown literal fails compilation. Raw model messages
-remain evidence and never become the replay contract.
+**Action.** I used an async Python modular monolith. `DiscoveryLoop` owns stochastic
+authoring (Claude computer-use: screenshot + coordinates, no hidden DOM).
+`CapabilityArtifact` is the durable contract. `ReplayEngine` is a no-LLM interpreter.
+`PolicyGate`, `SessionManager`, and `EvidenceRecorder` own allowlisting, control, and
+redacted logs. Playwright is the only `SurfaceDriver` implementation. One process owns the
+browser and the operator console so handoff cannot split the session. The proxy target is
+CloudCruise United's public synthetic claims portal (login → search → select → claims,
+shuffled columns, no real PII). After each successful coordinate click, `LocatorHarvester`
+fingerprints the real control and `ArtifactCompiler` binds typed `{member_id}` /
+`DEMO_PASSWORD` references. Model transcripts stay in evidence; they are never the replay
+source.
 
-The architecture is intentionally asymmetric: discovery is a slow, model-backed control-
-plane workflow; replay is a cheap data-plane interpreter with no LLM dependency. At scale,
-requests would enter a durable queue, one browser worker would lease each run, artifacts
-and rich evidence would live in object storage, and metadata would live in a relational
-registry. Per-tenant concurrency limits, idempotency keys, worker fencing, and vendor-app
-circuit breakers would be added without changing the artifact contract.
+**Result / trade-off.** Discovery is a slow control plane; replay is a cheap data plane.
+A single process is one failure domain and cannot fan out browsers — appropriate for this
+slice. At scale, keep these module ports and put runs on a durable queue with one worker
+lease per live session. The artifact contract would not change.
 
 # Artifact schema
 
-The Pydantic v2 artifact is an intermediate representation, not a transcript or generated
-test script. It contains `schema_version` for structural compatibility,
-`capability_version` for behavior changes, a stable capability ID, target application and
-surface metadata, typed inputs, credential references, typed output extraction, ordered
-steps, and a final checkpoint. Canonical JSON receives a SHA-256 content hash; loading
-rejects edited or corrupted artifacts. Unknown fields are forbidden.
+**Situation.** A successful Claude transcript is proof of one run, not a tool an upstream
+agent can call with typed args.
 
-Each step declares an action, unique ID, description, ranked `LocatorStrategy` values and
-their robustness reasoning, parameter/credential binding, preconditions, postconditions,
-bounded retry policy, observation rules, and one of `safe`, `reversible`, `risky`, or
-`irreversible`. Locators support accessible role/name, label, visible text, CSS, XPath,
-frame path, and normalized coordinates. Parameter placeholders are validated everywhere,
-including XPath, checkpoints, outputs, and URL templates. The reviewed artifact finds a row
-by `data-column='mrn'` and `{member_id}`, so random column ordering is irrelevant.
+**Task.** Emit a reviewable, versioned capability: ordered actions, how each control is
+identified (with robustness reasoning), typed inputs/outputs, and a success checkpoint.
 
-Inputs export as strict JSON Schema, making the artifact directly usable as an agent tool
-contract. Outputs declare type, sensitivity, and deterministic extraction rather than an
-observed value. Credentials are names such as `DEMO_PASSWORD`; values are resolved only at
-runtime. The artifact deliberately includes approval state metadata: discovery output is a
-draft and does not become trusted unattended automation merely because it succeeded once.
+**Action.** The Pydantic v2 schema is an intermediate representation. It carries
+`schema_version`, `capability_version`, capability id, target/vendor/version, typed
+parameters (JSON Schema export), credential *names*, extraction rules (not remembered
+values), ranked locators (`role_name` → label/text → css/xpath → normalized coordinates),
+pre/postconditions, observation rules, retry policy, and `safe|reversible|risky|irreversible`.
+Unknown fields are forbidden. Canonical JSON is hashed; load fails on tamper. Discovery
+writes a draft (`approved_for_unattended_replay: false`). The reviewed golden locates a row
+by `data-column='mrn'` and `{member_id}` so column shuffle is irrelevant.
 
-Schema strictness creates migration cost, but silent interpretation changes are more
-dangerous. A production registry would store immutable versions by hash, run pure schema
-migrations, enforce backward compatibility in CI, and promote hashes through draft,
-reviewed, canary, and approved states.
+**Result / trade-off.** Strictness costs migrations; silent extra-field interpretation is
+worse. Production would promote hashes through draft → reviewed → canary → approved. The
+live compile in `/evidence/discovery/` is the authoring output; the golden file is the
+invocable contract.
 
 # Determinism & error handling
 
-Replay validates inputs, opens the declared entry point, and processes the same ordered
-state machine every time. For each step it checks preconditions, resolves locators by rank,
-requires exactly one match, applies policy, executes one action, and verifies
-postconditions. Ambiguous matches are never clicked arbitrarily. Waits poll declared
-conditions; retries are bounded with exponential backoff and seeded timing jitter. The
-overall success checkpoint must pass before typed outputs are extracted.
+**Situation.** Enterprise UIs change slowly. Replay that only handles the happy path is
+useless: “no such member,” validation, dialogs, timeouts, and slow loads are legitimate
+runtime states. Reviewers also ask how the deterministic path is “trained.”
 
-The result algebra separates `success`, `business_outcome`, `recoverable_exhausted`,
-`hard_failure`, and `intervention_required`. A no-result row is declared as
-`PATIENT_NOT_FOUND` and returns no failure. Recoverable rules may retry, wait, dismiss a
-known element, request reauthentication, or escalate. Exhaustion remains distinguishable
-from an undeclared broken locator. Hard failures include step ID/index, expected state,
-observed state, and evidence paths.
+**Task.** Replay the artifact with no LLM in the decision loop; verify checkpoints; return
+outputs; classify expected business outcomes vs recoverable conditions vs hard failures.
+Author the skill without fine-tuning weights.
 
-Outcome meaning is explicit in the artifact; replay never asks a model to infer whether
-page text is an error. This is less flexible than an LLM fallback but preserves the core
-guarantee. Unknown states stop with evidence and become candidates for a reviewed artifact
-version. Locator-tier selection in structured logs is also drift telemetry: movement from
-role/name to XPath or coordinates lowers confidence before total failure.
+**Action — authoring (not training).** No gradient update, no offline neural fit. Claude
+discovers once (observe → decide → act). The compiler writes a draft JSON skill. A human
+reviews locators/outcomes (the golden artifact). That JSON *is* the learned capability.
+Later invocations never call Claude. A new version is a new discovery or a reviewed edit
+plus a new hash — the same loop as promoting a runbook, not retraining a model. Offline
+HAR replay is a hermetic *stage* for the already-authored skill; it is not training data.
 
-The committed HAR provides a hermetic offline path with unrecorded requests aborted. It is
-a test fixture, not production replay. Curated evidence includes a genuine Claude discovery
-run, success, not-found, and a bad-login hard failure with masked screenshot. Simulated
-discovery tests are not represented as that live evidence.
+**Action — replay.** Same ordered steps every time: validate params → open allowlisted
+entry → unique locator match (never click 2-of-N) → policy → one action → postcondition.
+Waits are condition polls with bounded exponential backoff. Declared observation rules
+fire first: `PATIENT_NOT_FOUND` is `business_outcome` with `failure: null`. Recoverable
+rules may retry, wait, dismiss, or reauthenticate; exhaustion is not a hard crash. Unknown
+UI → `hard_failure` with step, expected, observed, masked screenshot. Replay never asks a
+model “is this an error?” Locator-tier logs are secondary drift telemetry (role/name
+falling to coordinates).
+
+**Result.** Offline eval (5× happy path + 5× not-found, no LLM): 100% success, 100%
+`PATIENT_NOT_FOUND`, identical outputs, 0 coordinate fallbacks, locator quality 0.885,
+contract score 0.981, composite **99.81**. Report: `evidence/eval/lookup_patient_recent_claims.eval.json`.
+The golden artifact is now `approved_for_unattended_replay`. The live discovery draft fails
+those gates (no business rule; brittle CSS). Replay packages contain no Anthropic import.
 
 # Heterogeneity & multi-tenant
 
-`SurfaceDriver` is the seam between capability semantics and computer mechanics. It exposes
-lifecycle, observation, action, and snapshot contracts. `PlaywrightWebSurface` is the only
-implementation here; it returns screenshot pixels, visible semantic nodes, frame metadata,
-viewport, URL, and state fingerprint. A legacy-web adapter can add frameset traversal and
-image/OCR resolution. A desktop adapter can use Windows UI Automation, macOS Accessibility,
-or a remote-desktop coordinate driver while preserving step, checkpoint, outcome, policy,
-and result contracts. Resolver implementations are surface-specific; recorded flow
-semantics are not.
+**Situation.** Surfaces include modern web, frameset/legacy markup, and native desktop.
+Hundreds of institutions run ~20 apps; many share one vendor product with different
+branding and versions. Re-recording per tenant does not scale.
 
-Cross-tenant reuse should start with a vendor-product base artifact, not copies. The base
-contains canonical parameterized routes, actions, outcome rules, and semantic locators.
-Resolution order would be base → vendor-version overlay → tenant override. Overrides may
-change branding text, frame paths, or one locator, but not silently weaken risk policy.
-Artifacts identify product version and content hash; a tenant binding pins the approved
-combination.
+**Task.** Implement one web surface, but keep a seam so artifact/replay/policy do not assume
+Playwright selectors or one bank's labels.
 
-Drift is detected through entry fingerprint, locator-tier usage, checkpoint failures,
-outcome rates, and replay reliability by tenant/version. A version change first runs
-read-only canaries. Compatible overlays are promoted centrally; a tenant-specific override
-is the last resort. Repeated coordinate fallback or correlated failures across tenants
-trigger vendor-level re-discovery instead of hundreds of separate recordings.
+**Action.** `SurfaceDriver` is perception/action (observe, act, snapshot). The artifact
+stores flow semantics (step, checkpoint, outcome, risk). A desktop adapter would swap the
+driver, not the schema. Reuse is a vendor *base* artifact (parameterized routes, semantic
+locators, outcome rules), then version overlay, then tenant override. Overrides may change
+a label or frame path; they must not silently weaken risk class. Tenant bindings pin
+`(hash, product_version)`. Drift: entry fingerprint, locator-tier mix, outcome rates.
+Correlated coordinate fallback across tenants triggers vendor-level re-discovery, not N
+copies.
+
+**Result / trade-off.** Only Playwright web is implemented — as the brief allows. The
+corner not painted: replay does not embed tenant strings or DOM-only APIs in the contract.
 
 # Escalation & handoff
 
-Discovery stops on deadline, step budget, repeated identical actions, unchanged state,
-model error, or policy interception. Replay escalates after bounded automatic recovery and
-before risky or irreversible actions. `InterventionRequest` carries run/capability, reason,
-current step, URL, expected versus observed state, timestamp, and a masked screenshot.
+**Situation.** Discovery can loop; replay can hit an undeclared state; a risky click must
+not be unattended. A fresh browser is not a handoff — cookies and dialogs live in the
+session.
 
-Control is explicit: `automation → pending_human → human → automation`. The minimal FastAPI
-console runs inside the same process and changes the same `SessionManager`; the operator
-uses the already-open headed Playwright window. No new context is created. Illegal
-transitions return HTTP 409, and automation asserts ownership before acting. While the
-human owns control, injected listeners capture clicks and field-change events without
-capturing entered values.
+**Task.** Detect stuck, route context, let a human use the *same* live session, resume,
+record what they did. Full co-browsing is out of scope.
 
-For a risky replay step, automation does not click. The human performs it and resumes;
-replay then requires the step's postcondition before advancing. For an unrecoverable step,
-the human may repair state; replay verifies the postcondition or gets one final bounded
-attempt. Discovery receives a fresh screenshot of the human-modified session and continues
-its model conversation. The integration test asserts object identity of the browser context
-before and after handoff.
+**Action.** Stuck = deadline, step budget, repeated action, unchanged fingerprint, or
+policy block. `InterventionRequest` carries capability/goal, step, URL, expected vs
+observed, masked screenshot. Control is `automation → pending_human → human → automation`
+(HTTP 409 on illegal jumps). The FastAPI page mutates in-process `SessionManager`; the
+operator uses the headed Playwright window. Listeners log click/change without values.
+After resume, replay re-verifies the postcondition; discovery re-observes with a fresh
+screenshot. Tests assert `BrowserContext` object identity.
 
-The console is deliberately not a production co-browsing system. Production would retain
-one worker lease per run, route commands through a broker, stream a redacted remote-browser
-view, persist control events, and use fencing tokens so stale workers cannot act.
+**Result / trade-off.** The transfer protocol is real; the UI is a mock. Production would
+add a worker lease, redacted remote view, and fencing tokens. In-memory ownership dies
+with the process.
 
 # Safety
 
-`config/policy.yaml` is a versioned, strict, fail-closed policy. Exact origins, full route
-patterns, and action types are allowlisted. It is checked before opening an entry URL and
-immediately before every discovery/replay action. Artifact risk class is primary; text
-patterns are conservative defense in depth. Risky or irreversible actions require human
-control rather than silent unattended execution.
+**Situation.** This is a stand-in for regulated financial operations. An agent that can
+click can also navigate off-policy or persist secrets.
 
-The system treats webpage instructions as untrusted, bounds model actions/time, and blocks
-navigation outside the allowlist. Credentials are runtime references. Before any JSON or
-JSONL write, `Redactor` recursively removes sensitive keys, exact runtime parameter and
-credential values, SSNs, tokens, API-key patterns, and sensitive URL parameters. Persisted
-screenshots mask every input plus known sensitive result regions. Human field changes are
-logged only as `value_was_entered=true`.
+**Task.** Configurable allowlist; conservative risky/irreversible handling; never persist
+credentials or raw PII in artifacts or logs.
 
-Screenshot masking cannot guarantee removal of arbitrary sensitive text, and regexes are
-not a complete DLP system. Production therefore also needs isolated least-privilege browser
-containers, encrypted evidence, tenant-scoped access, short retention, egress controls,
-central policy signing, and audit review. The committed HAR contains only the third-party
-demo's publicly published synthetic fixture records and login; no real user data is used.
+**Action.** `config/policy.yaml` is fail-closed: exact origin, route regex, action types.
+Checked before navigation and before every act. Page text is untrusted. Risk class on the
+step is primary; regexes are defense in depth. Risky/irreversible requires human control,
+not a silent click. Artifacts store `DEMO_PASSWORD`, not the value. `Redactor` runs on
+every JSON/JSONL write. Screenshots mask inputs and known sensitive regions.
+
+**Result / trade-off.** Regex DLP is incomplete (the live run over-matched `"provider"`
+inside an element id). Production needs isolated browsers, encryption, short retention,
+and signed policy. No real bank data is in the repo.
 
 # Cuts
 
-The project implements one web surface, one local operator console, filesystem artifact
-storage, and one-process session ownership. It does not build a desktop driver, OCR,
-distributed queue, database registry, remote video co-browsing, tenant administration,
-artifact migration service, or automatic LLM repair during replay. Those additions would
-increase breadth without improving the evaluated vertical slice.
+**Situation.** The brief grades a vertical slice and explicitly does not reward queues,
+clusters, or multi-tenant plumbing.
 
-The operator UI is intentionally minimal; its transfer protocol is real. The reviewed
-golden artifact is hand-authored to prove replay before model use; live discovery emits a
-separate draft artifact. The HAR exists only for no-service demonstration. Real production
-evidence, credentials, and regulated data are not included.
+**Task.** Touch every core requirement thinly-but-really; pick at most one stretch; write
+next steps.
 
-The one completed stretch is an agent-facing catalog: `capability catalog` exports typed
-tool specs and `capability invoke` calls deterministic replay by name. Next I would add
-approval/reliability scoring and a vendor-version overlay against the demo's version-drift
-mode. Only then would I split queues/workers or build a richer React operator console.
-Live Claude discovery evidence is in `evidence/discovery/discovery-live/`: token usage,
-computer-tool events, a draft artifact, a masked final screenshot, and a redacted HAR.
-That draft is not the production replay contract; the reviewed golden artifact is.
+**Action.** Built: one web driver, filesystem artifacts, one-process handoff, catalog +
+`invoke`, and `capability evaluate` (reliability gates + approval). Not built: desktop
+driver, OCR, distributed queue, registry DB, remote video co-browsing, tenant admin,
+schema migration service, or automatic LLM repair during replay. Operator UI is minimal;
+live compile is a separate draft; HAR is a demo fixture.
+
+**Result.** `/evidence/discovery/discovery-live/` is the genuine Claude run. Production
+replay uses the eval-promoted golden artifact. Unattended `invoke` is refused for drafts.
+Next: a vendor-version overlay on the demo's drift mode — then workers, not before.

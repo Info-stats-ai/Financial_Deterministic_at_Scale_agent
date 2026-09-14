@@ -1,0 +1,27 @@
+{
+  "capability_name": "lookup_patient_claims",
+  "source": "evidence/discovery/discovery-live/artifact.json",
+  "approved_for_unattended_replay": false,
+  "metrics": {
+    "locator_quality": 0.8375,
+    "contract_score": 0.7063,
+    "has_business_rule": 0.0,
+    "parameterized_locators": 0.0,
+    "coordinate_rank1_count": 0.0,
+    "locator_count": 31.0
+  },
+  "gates": {
+    "locator_quality": true,
+    "contract_score": false,
+    "has_business_rule": false,
+    "parameterized_locators": false,
+    "no_coordinate_rank1": true
+  },
+  "passed": false,
+  "recommendation": "keep_draft_review_locators_or_outcomes",
+  "notes": [
+    "Static contract score only; live compile is not promoted.",
+    "Missing PATIENT_NOT_FOUND observation rule.",
+    "Rank-1 locators include brittle nth-of-type CSS."
+  ]
+}

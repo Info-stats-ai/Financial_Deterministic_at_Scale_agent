@@ -12,6 +12,7 @@ def test_catalog_exposes_typed_agent_tool_contract() -> None:
     assert len(tools) == 1
     tool = tools[0]
     assert tool["name"] == "lookup_patient_recent_claims"
+    assert tool["approved"] is True
     assert tool["input_schema"]["required"] == ["member_id"]
     assert tool["input_schema"]["additionalProperties"] is False
     assert {item["name"] for item in tool["outputs"]} >= {

@@ -66,6 +66,7 @@ class CapabilityCatalog:
                         key=lambda item: _RISK_RANK[item],
                         default=RiskClass.SAFE.value,
                     ),
+                    "approved": artifact.metadata.approved_for_unattended_replay,
                     "input_schema": artifact.agent_input_schema(),
                     "outputs": [
                         {
