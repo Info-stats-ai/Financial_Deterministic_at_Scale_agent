@@ -27,6 +27,7 @@ from interface_ai.replay.locator_resolver import (
 )
 from interface_ai.replay.outcomes import OutcomeClassifier
 from interface_ai.replay.result import FailureDetail, ReplayResult, ReplayStatus
+from interface_ai.safety.policy import PolicyGate
 from interface_ai.surface.web_playwright import PlaywrightWebSurface
 
 
@@ -40,9 +41,11 @@ class ReplayEngine:
         surface: PlaywrightWebSurface,
         *,
         evidence_dir: Path | None = None,
+        policy_gate: PolicyGate | None = None,
     ) -> None:
         self.surface = surface
         self.evidence_dir = evidence_dir
+        self.policy_gate = policy_gate
 
     def _validate_inputs(
         self, artifact: CapabilityArtifact, supplied: dict[str, Any]
@@ -155,6 +158,8 @@ class ReplayEngine:
     ) -> list[str]:
         if self.evidence_dir is None:
             return []
+        if self.surface.page is None:
+            return []
         filename = f"{run_id}-step-{step_index if step_index is not None else 'final'}-{suffix}.png"
         path = self.evidence_dir / filename
         await self.surface.snapshot(path)
@@ -265,6 +270,21 @@ class ReplayEngine:
         entry_url = artifact.target.entry_url_template.format_map(
             {key: str(value) for key, value in values.items()}
         )
+        if self.policy_gate:
+            entry_verdict = self.policy_gate.check_url(entry_url)
+            if not entry_verdict.allowed:
+                return await self._failure_result(
+                    run_id=run_id,
+                    artifact=artifact,
+                    started=started,
+                    status=ReplayStatus.HARD_FAILURE,
+                    completed_steps=0,
+                    step=None,
+                    step_index=None,
+                    code=entry_verdict.code,
+                    expected="allowlisted entry URL",
+                    observed=entry_verdict.reason,
+                )
         owns_session = self.surface.page is None
         if owns_session:
             await self.surface.start(start_url=entry_url)
@@ -305,6 +325,49 @@ class ReplayEngine:
                 last_error = "action did not run"
                 for attempt in range(1, max_attempts + 1):
                     try:
+                        if self.policy_gate:
+                            navigation_url = None
+                            if (
+                                ActionType(step.action) == ActionType.NAVIGATE
+                                and step.value_template
+                            ):
+                                navigation_url = step.value_template.format_map(
+                                    {
+                                        key: str(item)
+                                        for key, item in values.items()
+                                    }
+                                )
+                            verdict = self.policy_gate.check_step(
+                                step,
+                                current_url=page.url,
+                                navigation_url=navigation_url,
+                            )
+                            if not verdict.allowed:
+                                return await self._failure_result(
+                                    run_id=run_id,
+                                    artifact=artifact,
+                                    started=started,
+                                    status=ReplayStatus.HARD_FAILURE,
+                                    completed_steps=completed_steps,
+                                    step=step,
+                                    step_index=index,
+                                    code=verdict.code,
+                                    expected="policy-allowed action",
+                                    observed=verdict.reason,
+                                )
+                            if verdict.requires_human_approval:
+                                return await self._failure_result(
+                                    run_id=run_id,
+                                    artifact=artifact,
+                                    started=started,
+                                    status=ReplayStatus.INTERVENTION_REQUIRED,
+                                    completed_steps=completed_steps,
+                                    step=step,
+                                    step_index=index,
+                                    code=verdict.code,
+                                    expected="human approval before execution",
+                                    observed=verdict.reason,
+                                )
                         target = (
                             await self._resolve(step, resolver)
                             if step.locators

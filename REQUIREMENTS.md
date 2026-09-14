@@ -17,9 +17,9 @@ automated verification, and demonstration evidence are all present.
 | Validation/runtime error handling | `replay/outcomes.py` | scenario tests | error replay | Implemented; evidence pending |
 | Business outcome vs recoverable vs hard failure | result and outcome contracts | taxonomy tests | three replay results | Implemented; evidence pending |
 | Structured success/failure result | `ReplayResult` | contract tests | `result.json` | Implemented; evidence pending |
-| Domain/route/action allowlist | `safety/policy.py` + `config/policy.yaml` | policy tests | policy events | Configured; enforcement pending |
-| Safe/reversible/risky/irreversible classes | artifact + policy gate | policy tests | risky-step handoff | Schema done; enforcement pending |
-| No persisted secrets or raw PII | credential references + redaction writer | redaction tests + repository scan | redacted logs/shots | Partially implemented |
+| Domain/route/action allowlist | `safety/policy.py` + `config/policy.yaml` | policy tests | policy events | Implemented; evidence pending |
+| Safe/reversible/risky/irreversible classes | artifact + policy gate | policy tests | risky-step handoff | Implemented; handoff pending |
+| No persisted secrets or raw PII | credential references + redaction writer | redaction tests + repository scan | redacted logs/shots | Implemented; final scan pending |
 | Structured action-and-reason logs | `evidence/logger.py` | logger tests | JSONL | Planned |
 | Rich failure signal | evidence collector | failure test | screenshot + semantic snapshot | Planned |
 | Discovery stuck detection | `discovery/stuck.py` | state-progression tests | intervention event | Planned |

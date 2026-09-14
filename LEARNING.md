@@ -294,3 +294,57 @@ through review, canary the new artifact version, and roll back by immutable vers
 
 Algebraic result types, domain errors versus technical failures, bounded recovery,
 dead-letter handling, canary releases, and closed-loop artifact improvement.
+
+## Phase 6 — Policy enforcement and redaction
+
+### Challenge
+
+Safety guidance in an LLM prompt is not enforcement. A model can misunderstand it, and
+replay has no model prompt at all. Checking logs after execution also cannot undo an
+unauthorized click or leaked credential.
+
+### Options considered
+
+1. Prompt-only restrictions.
+2. Duplicate checks inside discovery and replay.
+3. One fail-closed policy gate immediately before every action, plus redaction at writes.
+
+### Decision and reasons
+
+Use a shared `PolicyGate`. It allows only configured origins, routes, and action types.
+Risk class is declared in the artifact, while text-pattern detection provides a conservative
+second signal. Risky or irreversible actions are allowed only after human approval;
+disallowed network/action scope stops execution.
+
+### Implementation
+
+- YAML policy is strictly validated and versioned.
+- URL checks parse and compare origins instead of using unsafe prefix matching.
+- Routes use full regular-expression matching.
+- Replay validates the entry URL before opening a browser and every action immediately
+  before execution.
+- `Redactor` recursively scrubs sensitive keys, SSNs, bearer tokens, API-key patterns, and
+  sensitive URL query values before persistence.
+- Credential values are runtime inputs referenced by name in the artifact.
+- Tests prove allowed/blocked origin and route behavior, risk escalation, recursive
+  redaction, and fail-closed replay before navigation.
+
+### Trade-off and bottleneck
+
+Regex risk detection can produce false positives and cannot understand every visually
+implied consequence. The artifact's explicit risk class is primary; pattern detection is
+defense in depth. Screenshot redaction can only mask known sensitive fields and cannot
+guarantee removal of arbitrary text rendered elsewhere, so access controls and retention
+limits still matter.
+
+### Scale path
+
+Resolve a tenant policy version at run admission, cache a signed snapshot with the run, and
+enforce it locally for the run lifetime. Central policy management supports review and
+rollout; workers fail closed if no valid policy is available. Publish every verdict to an
+immutable audit stream without storing the sensitive action payload.
+
+### Concepts learned
+
+Policy enforcement points, fail-closed authorization, defense in depth, configuration
+versioning, data-loss prevention, least privilege, audit logs, and TOCTOU avoidance.
