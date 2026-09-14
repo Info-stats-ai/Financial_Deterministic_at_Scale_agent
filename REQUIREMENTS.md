@@ -23,10 +23,10 @@ automated verification, and demonstration evidence are all present.
 | Structured action-and-reason logs | `evidence/recorder.py` | discovery/redaction tests | JSONL | Implemented; curated evidence pending |
 | Rich failure signal | evidence collector | failure test | screenshot + semantic snapshot | Planned |
 | Discovery stuck detection | `discovery/stuck.py` | state-progression tests | intervention event | Implemented; handoff pending |
-| Unrecoverable replay escalation | replay + handoff | integration test | intervention event | Planned |
-| Risky-step escalation | safety + handoff | integration test | handoff log | Planned |
-| Same-session human takeover and return | session state machine + operator UI | handoff integration test | human action events | Planned |
-| Clear control ownership | `ControlOwner` state machine | transition tests | ownership events | Planned |
+| Unrecoverable replay escalation | replay + handoff | integration test | intervention event | Implemented; curated evidence pending |
+| Risky-step escalation | safety + handoff | integration test | handoff log | Implemented; curated evidence pending |
+| Same-session human takeover and return | session state machine + operator UI | handoff integration test | human action events | Implemented; curated evidence pending |
+| Clear control ownership | `ControlOwner` state machine | transition tests | ownership events | Implemented |
 | Legacy web/desktop extension seam | `SurfaceDriver` protocol | protocol conformance test | `REPORT.md` design | In progress |
 | Multi-tenant reuse and drift design | artifact metadata + report | document check | `REPORT.md` | Planned |
 | Real discovery evidence | live Claude run | evidence validator | `/evidence/discovery/` | Planned |

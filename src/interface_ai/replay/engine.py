@@ -19,6 +19,8 @@ from interface_ai.artifact.schema import (
     RecoveryAction,
     ValueType,
 )
+from interface_ai.handoff.controller import HandoffController
+from interface_ai.handoff.models import InterventionReason
 from interface_ai.replay.checkpoints import CheckpointResult, CheckpointVerifier
 from interface_ai.replay.locator_resolver import (
     LocatorResolutionError,
@@ -42,10 +44,12 @@ class ReplayEngine:
         *,
         evidence_dir: Path | None = None,
         policy_gate: PolicyGate | None = None,
+        handoff: HandoffController | None = None,
     ) -> None:
         self.surface = surface
         self.evidence_dir = evidence_dir
         self.policy_gate = policy_gate
+        self.handoff = handoff
 
     def _validate_inputs(
         self, artifact: CapabilityArtifact, supplied: dict[str, Any]
@@ -317,8 +321,12 @@ class ReplayEngine:
                 )
                 rng = random.Random(f"{run_id}:{step.id}")  # noqa: S311 - retry jitter only
                 last_error = "action did not run"
-                for attempt in range(1, max_attempts + 1):
+                handoff_used = False
+                total_attempts = max_attempts + (1 if self.handoff else 0)
+                for attempt in range(1, total_attempts + 1):
                     try:
+                        if self.handoff:
+                            self.handoff.session.assert_automation_control()
                         if self.policy_gate:
                             navigation_url = None
                             if (
@@ -347,18 +355,75 @@ class ReplayEngine:
                                     observed=verdict.reason,
                                 )
                             if verdict.requires_human_approval:
-                                return await self._failure_result(
+                                if self.handoff is None:
+                                    return await self._failure_result(
+                                        run_id=run_id,
+                                        artifact=artifact,
+                                        started=started,
+                                        status=ReplayStatus.INTERVENTION_REQUIRED,
+                                        completed_steps=completed_steps,
+                                        step=step,
+                                        step_index=index,
+                                        code=verdict.code,
+                                        expected="human approval before execution",
+                                        observed=verdict.reason,
+                                    )
+                                resolution = await self.handoff.intervene(
                                     run_id=run_id,
-                                    artifact=artifact,
-                                    started=started,
-                                    status=ReplayStatus.INTERVENTION_REQUIRED,
-                                    completed_steps=completed_steps,
-                                    step=step,
-                                    step_index=index,
-                                    code=verdict.code,
-                                    expected="human approval before execution",
-                                    observed=verdict.reason,
+                                    reason=InterventionReason.RISKY_ACTION,
+                                    summary=verdict.reason,
+                                    goal_or_capability=artifact.name,
+                                    current_step=step.id,
+                                    expected_state=(
+                                        "; ".join(item.description for item in step.postconditions)
+                                        or "a declared postcondition"
+                                    ),
+                                    observed_state="risky action not executed by automation",
                                 )
+                                if not resolution.resumed:
+                                    return await self._failure_result(
+                                        run_id=run_id,
+                                        artifact=artifact,
+                                        started=started,
+                                        status=ReplayStatus.INTERVENTION_REQUIRED,
+                                        completed_steps=completed_steps,
+                                        step=step,
+                                        step_index=index,
+                                        code="HANDOFF_NOT_RESUMED",
+                                        expected="human completion and resume",
+                                        observed=resolution.reason or "not resumed",
+                                    )
+                                if not step.postconditions:
+                                    return await self._failure_result(
+                                        run_id=run_id,
+                                        artifact=artifact,
+                                        started=started,
+                                        status=ReplayStatus.HARD_FAILURE,
+                                        completed_steps=completed_steps,
+                                        step=step,
+                                        step_index=index,
+                                        code="UNVERIFIABLE_HANDOFF",
+                                        expected="a postcondition for the human action",
+                                        observed="risky step declares no postcondition",
+                                    )
+                                handoff_check = await self._check_all(
+                                    verifier, step.postconditions, values
+                                )
+                                if handoff_check:
+                                    return await self._failure_result(
+                                        run_id=run_id,
+                                        artifact=artifact,
+                                        started=started,
+                                        status=ReplayStatus.HARD_FAILURE,
+                                        completed_steps=completed_steps,
+                                        step=step,
+                                        step_index=index,
+                                        code="HANDOFF_CHECKPOINT_FAILED",
+                                        expected=handoff_check.expected,
+                                        observed=handoff_check.observed,
+                                    )
+                                completed_steps += 1
+                                break
                         target = await self._resolve(step, resolver) if step.locators else None
                         await self._perform_action(step, target, values, credentials)
                         classified = await classifier.classify(step.observation_rules, values)
@@ -445,7 +510,40 @@ class ReplayEngine:
                         break
                     except Exception as exc:
                         last_error = f"{type(exc).__name__}: {exc}"
-                        if attempt >= max_attempts:
+                        if (
+                            attempt >= max_attempts
+                            and self.handoff is not None
+                            and not handoff_used
+                        ):
+                            handoff_used = True
+                            resolution = await self.handoff.intervene(
+                                run_id=run_id,
+                                reason=InterventionReason.REPLAY_UNRECOVERABLE,
+                                summary="Deterministic replay exhausted automatic recovery",
+                                goal_or_capability=artifact.name,
+                                current_step=step.id,
+                                expected_state=step.description,
+                                observed_state=last_error,
+                            )
+                            if not resolution.resumed:
+                                return await self._failure_result(
+                                    run_id=run_id,
+                                    artifact=artifact,
+                                    started=started,
+                                    status=ReplayStatus.INTERVENTION_REQUIRED,
+                                    completed_steps=completed_steps,
+                                    step=step,
+                                    step_index=index,
+                                    code="HANDOFF_NOT_RESUMED",
+                                    expected="human recovery and resume",
+                                    observed=resolution.reason or "not resumed",
+                                )
+                            recovered = await self._check_all(verifier, step.postconditions, values)
+                            if step.postconditions and recovered is None:
+                                completed_steps += 1
+                                break
+                            continue
+                        if attempt >= total_attempts:
                             return await self._failure_result(
                                 run_id=run_id,
                                 artifact=artifact,

@@ -411,3 +411,61 @@ remains a separate cheap worker pool with no model access.
 
 Agent loops, client toolsets, tool-result protocols, prompt injection boundaries, control
 plane versus data plane, compilation, conservative failure, token budgeting, and sandboxing.
+
+## Phase 8 — Same-session escalation and human control
+
+### Challenge
+
+Creating a ticket or opening a fresh browser is not a handoff. Cookies, transient dialogs,
+form state, and the exact failure context live inside one browser context. Automation and a
+human must never act concurrently, and automation must not trust “done” without checking.
+
+### Options considered
+
+1. Emit an intervention event and terminate.
+2. Start a replacement browser for an operator.
+3. Pause one owned session, transfer explicit control, then resume after verification.
+
+### Decision and reasons
+
+Use a three-state ownership machine: `automation`, `pending_human`, and `human`. A
+`SessionManager` owns the existing `PlaywrightWebSurface`. The FastAPI operator console
+runs in the same process, so its take-control/resume commands mutate the same in-memory
+ownership state instead of trying to reconstruct browser state elsewhere.
+
+### Implementation
+
+- `InterventionRequest` includes run/capability, reason, current step, URL, expected versus
+  observed state, timestamp, and a screenshot from the live session.
+- The operator console exposes current ownership and only permits legal transitions,
+  returning HTTP 409 for invalid ones.
+- While the owner is human, injected page listeners record clicks and changes without
+  recording entered values.
+- Risky replay steps are not executed by automation. A human performs them, resumes, and
+  replay verifies the declared postcondition before advancing.
+- After automatic retries are exhausted, replay offers the same session for recovery, then
+  rechecks postconditions or makes one final bounded retry.
+- Discovery can hand off on no progress or policy interception, then sends the model a new
+  screenshot of the human-modified session and continues.
+- Integration tests prove that the browser context object is identical before and after
+  handoff, that human actions are captured, and that replay succeeds only after checkpoint
+  verification.
+
+### Trade-off and bottleneck
+
+The local operator controls the headed browser window; this is intentionally not a full
+remote co-browsing product. In-memory ownership means the run and console share one process.
+That is the simplest real implementation of the required seam, but a crashed worker loses
+the live browser unless the browser itself is remotely hosted.
+
+### Scale path
+
+Give each run a lease held by one browser worker. Route operator commands through a broker
+to that worker, stream a redacted view through a remote-browser gateway, and persist
+control-transition events durably. Lease expiry prevents two workers from controlling the
+same session; heartbeats and fencing tokens prevent stale owners from acting.
+
+### Concepts learned
+
+Finite-state machines, mutual exclusion, session affinity, leases, fencing tokens,
+human-in-the-loop control planes, event capture, and post-handoff invariant verification.

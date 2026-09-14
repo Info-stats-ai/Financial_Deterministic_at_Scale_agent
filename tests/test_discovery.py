@@ -23,17 +23,13 @@ class FakeComputerClient:
     def __init__(self, turns: list[ModelTurn]) -> None:
         self.turns = deque(turns)
 
-    async def next_turn(
-        self, *, system: str, messages: list[dict[str, Any]]
-    ) -> ModelTurn:
+    async def next_turn(self, *, system: str, messages: list[dict[str, Any]]) -> ModelTurn:
         assert "complete_capability" in system
         assert messages
         return self.turns.popleft()
 
 
-def call(
-    identifier: str, name: str, payload: dict[str, Any], *, computer: bool = True
-) -> ToolCall:
+def call(identifier: str, name: str, payload: dict[str, Any], *, computer: bool = True) -> ToolCall:
     return ToolCall(
         id=identifier,
         name=name,
@@ -185,15 +181,9 @@ async def test_model_loop_compiles_actions_into_artifact(tmp_path: Path) -> None
 def test_stuck_detector_requires_repeated_action_or_state() -> None:
     detector = StuckDetector(repeated_action_limit=3, unchanged_state_limit=3)
 
-    assert not detector.observe(
-        tool_name="click", tool_input={"x": 1}, state_fingerprint="a"
-    ).stuck
-    assert not detector.observe(
-        tool_name="click", tool_input={"x": 1}, state_fingerprint="a"
-    ).stuck
-    decision = detector.observe(
-        tool_name="click", tool_input={"x": 1}, state_fingerprint="a"
-    )
+    assert not detector.observe(tool_name="click", tool_input={"x": 1}, state_fingerprint="a").stuck
+    assert not detector.observe(tool_name="click", tool_input={"x": 1}, state_fingerprint="a").stuck
+    decision = detector.observe(tool_name="click", tool_input={"x": 1}, state_fingerprint="a")
 
     assert decision.stuck
     assert "same action" in str(decision.reason)

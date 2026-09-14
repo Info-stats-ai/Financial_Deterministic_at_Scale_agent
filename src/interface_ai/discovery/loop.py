@@ -32,6 +32,8 @@ from interface_ai.discovery.models import (
 )
 from interface_ai.discovery.stuck import StuckDetector
 from interface_ai.evidence.recorder import EvidenceRecorder
+from interface_ai.handoff.controller import HandoffController
+from interface_ai.handoff.models import InterventionReason
 from interface_ai.safety.policy import PolicyGate
 from interface_ai.surface.protocol import ElementFingerprint, Viewport
 from interface_ai.surface.web_playwright import PlaywrightWebSurface
@@ -77,6 +79,7 @@ class DiscoveryLoop:
         policy_gate: PolicyGate,
         evidence: EvidenceRecorder,
         client: ComputerClient | None = None,
+        handoff: HandoffController | None = None,
         max_steps: int = 20,
         timeout_seconds: int = 300,
     ) -> None:
@@ -84,6 +87,7 @@ class DiscoveryLoop:
         self.policy_gate = policy_gate
         self.evidence = evidence
         self.client = client or ClaudeComputerClient()
+        self.handoff = handoff
         self.max_steps = max_steps
         self.timeout_seconds = timeout_seconds
         self.harvester = LocatorHarvester()
@@ -399,9 +403,7 @@ class DiscoveryLoop:
                 output_tokens=0,
             )
 
-        self.evidence.add_secret_values(
-            [*parameters.values(), *credentials.values()]
-        )
+        self.evidence.add_secret_values([*parameters.values(), *credentials.values()])
         await self.surface.start(start_url=target_url)
         initial = await self.surface.observe()
         self.evidence.record(
@@ -499,6 +501,7 @@ class DiscoveryLoop:
 
                 tool_results: list[dict[str, Any]] = []
                 halted_reason: str | None = None
+                recovered_by_human = False
                 for position, call in enumerate(computer_calls):
                     if halted_reason:
                         tool_results.append(
@@ -533,25 +536,99 @@ class DiscoveryLoop:
                             state_fingerprint=record.state_after,
                         )
                         if decision.stuck:
-                            return self._result(
+                            if self.handoff is None:
+                                return self._result(
+                                    run_id=run_id,
+                                    status=DiscoveryStatus.STUCK,
+                                    reason=decision.reason,
+                                    actions=actions,
+                                    model_turns=model_turns,
+                                    computer_actions=computer_actions,
+                                    input_tokens=input_tokens,
+                                    output_tokens=output_tokens,
+                                )
+                            resolution = await self.handoff.intervene(
                                 run_id=run_id,
-                                status=DiscoveryStatus.STUCK,
-                                reason=decision.reason,
-                                actions=actions,
-                                model_turns=model_turns,
-                                computer_actions=computer_actions,
-                                input_tokens=input_tokens,
-                                output_tokens=output_tokens,
+                                reason=InterventionReason.DISCOVERY_STUCK,
+                                summary=decision.reason or "Discovery made no progress",
+                                goal_or_capability=goal,
+                                current_step=f"computer-action-{computer_actions}",
+                                expected_state="human advances the same browser session",
+                                observed_state=record.state_after,
                             )
+                            if not resolution.resumed:
+                                return self._result(
+                                    run_id=run_id,
+                                    status=DiscoveryStatus.INTERVENTION_REQUIRED,
+                                    reason=resolution.reason,
+                                    actions=actions,
+                                    model_turns=model_turns,
+                                    computer_actions=computer_actions,
+                                    input_tokens=input_tokens,
+                                    output_tokens=output_tokens,
+                                )
+                            recovered_by_human = True
+                            halted_reason = "HUMAN_RECOVERED"
                     if error_code:
                         halted_reason = error_code
                     if computer_actions >= self.max_steps and position < len(computer_calls) - 1:
                         halted_reason = "MAX_STEPS"
 
+                if recovered_by_human:
+                    observation = await self.surface.observe()
+                    if tool_results:
+                        tool_results[-1]["content"].extend(
+                            [
+                                {
+                                    "type": "text",
+                                    "text": (
+                                        "A human operated the same session. Re-observe "
+                                        "and continue from the current state."
+                                    ),
+                                },
+                                self._image_block(observation.screenshot),
+                            ]
+                        )
+                    messages.append({"role": "user", "content": tool_results})
+                    self.stuck = StuckDetector()
+                    continue
+
                 if halted_reason in {
                     "HUMAN_APPROVAL_REQUIRED",
                     "ACTION_FAILED",
                 }:
+                    if self.handoff is not None:
+                        resolution = await self.handoff.intervene(
+                            run_id=run_id,
+                            reason=(
+                                InterventionReason.RISKY_ACTION
+                                if halted_reason == "HUMAN_APPROVAL_REQUIRED"
+                                else InterventionReason.DISCOVERY_STUCK
+                            ),
+                            summary=f"Discovery stopped: {halted_reason}",
+                            goal_or_capability=goal,
+                            current_step=f"computer-action-{computer_actions}",
+                            expected_state="human resolves the blocker and resumes",
+                            observed_state=halted_reason,
+                        )
+                        if resolution.resumed:
+                            observation = await self.surface.observe()
+                            if tool_results:
+                                tool_results[-1]["content"].extend(
+                                    [
+                                        {
+                                            "type": "text",
+                                            "text": (
+                                                "Human intervention completed. Verify "
+                                                "the current state before continuing."
+                                            ),
+                                        },
+                                        self._image_block(observation.screenshot),
+                                    ]
+                                )
+                            messages.append({"role": "user", "content": tool_results})
+                            self.stuck = StuckDetector()
+                            continue
                     status = (
                         DiscoveryStatus.INTERVENTION_REQUIRED
                         if halted_reason == "HUMAN_APPROVAL_REQUIRED"
