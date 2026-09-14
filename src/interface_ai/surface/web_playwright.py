@@ -121,16 +121,33 @@ FINGERPRINT_AT_POINT_JS = """
 
 
 class PlaywrightWebSurface:
+    DEFAULT_SENSITIVE_SELECTORS = [
+        "input",
+        "[data-column='patient-name']",
+        "[data-column='mrn']",
+        "[data-column='dob']",
+        "[data-column='insurance']",
+        "[data-testid='accordion-content-patient-summary']",
+    ]
+
     def __init__(
         self,
         *,
         headless: bool = False,
         viewport: tuple[int, int] = (1440, 900),
         har_path: Path | None = None,
+        replay_har_path: Path | None = None,
+        sensitive_selectors: list[str] | None = None,
     ) -> None:
         self.headless = headless
         self.viewport = viewport
         self.har_path = har_path
+        self.replay_har_path = replay_har_path
+        self.sensitive_selectors = (
+            sensitive_selectors
+            if sensitive_selectors is not None
+            else list(self.DEFAULT_SENSITIVE_SELECTORS)
+        )
         self._playwright: Playwright | None = None
         self.browser: Browser | None = None
         self.context: BrowserContext | None = None
@@ -153,6 +170,12 @@ class PlaywrightWebSurface:
                 record_har_content="embed",
             )
         self.context = await self.browser.new_context(**context_options)
+        if self.replay_har_path:
+            await self.context.route_from_har(
+                str(self.replay_har_path),
+                not_found="abort",
+                update=False,
+            )
         self.page = await self.context.new_page()
         self.page.on("dialog", self._dialogs.put_nowait)
         if start_url:
@@ -275,7 +298,13 @@ class PlaywrightWebSurface:
 
     async def snapshot(self, path: Path) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)
-        await self._require_page().screenshot(path=str(path), full_page=True)
+        page = self._require_page()
+        await page.screenshot(
+            path=str(path),
+            full_page=True,
+            mask=[page.locator(selector) for selector in self.sensitive_selectors],
+            mask_color="#111827",
+        )
         return path
 
     async def close(self) -> None:

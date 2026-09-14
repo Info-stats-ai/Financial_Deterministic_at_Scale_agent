@@ -681,7 +681,7 @@ class DiscoveryLoop:
                             output_tokens=output_tokens,
                         )
                     final = await self.surface.observe()
-                    self.evidence.write_bytes("final.png", final.screenshot)
+                    await self.surface.snapshot(self.evidence.run_dir / "final.png")
                     self.evidence.write_json("final-semantic-snapshot.json", final.semantic_tree)
                     self.evidence.record(
                         "discovery_completed",

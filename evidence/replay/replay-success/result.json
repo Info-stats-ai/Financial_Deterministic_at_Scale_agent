@@ -1,0 +1,17 @@
+{
+  "capability_id": "5fc5bf56-60b1-502f-87ec-26c74f30e58d",
+  "capability_version": "1.0.0",
+  "completed_steps": 6,
+  "duration_ms": 2557,
+  "failure": null,
+  "outcome_code": null,
+  "outcome_message": null,
+  "outputs": {
+    "insurance": "[REDACTED]",
+    "latest_claim": "[REDACTED]",
+    "patient_name": "[REDACTED]",
+    "patient_status": "Active"
+  },
+  "run_id": "replay-success",
+  "status": "success"
+}

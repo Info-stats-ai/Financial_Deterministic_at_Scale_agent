@@ -19,6 +19,7 @@ from interface_ai.artifact.schema import (
     RecoveryAction,
     ValueType,
 )
+from interface_ai.evidence.recorder import EvidenceRecorder
 from interface_ai.handoff.controller import HandoffController
 from interface_ai.handoff.models import InterventionReason
 from interface_ai.replay.checkpoints import CheckpointResult, CheckpointVerifier
@@ -43,13 +44,19 @@ class ReplayEngine:
         surface: PlaywrightWebSurface,
         *,
         evidence_dir: Path | None = None,
+        evidence: EvidenceRecorder | None = None,
         policy_gate: PolicyGate | None = None,
         handoff: HandoffController | None = None,
     ) -> None:
         self.surface = surface
-        self.evidence_dir = evidence_dir
+        self.evidence = evidence
+        self.evidence_dir = evidence_dir or (evidence.run_dir if evidence else None)
         self.policy_gate = policy_gate
         self.handoff = handoff
+
+    def _record(self, event_type: str, payload: dict[str, Any]) -> None:
+        if self.evidence:
+            self.evidence.record(event_type, payload)
 
     def _validate_inputs(
         self, artifact: CapabilityArtifact, supplied: dict[str, Any]
@@ -86,8 +93,13 @@ class ReplayEngine:
             values[name] = value
         return values
 
-    async def _resolve(self, step: CapabilityStep, resolver: LocatorResolver) -> ResolvedTarget:
-        return await resolver.resolve(step.locators)
+    async def _resolve(
+        self,
+        step: CapabilityStep,
+        resolver: LocatorResolver,
+        values: dict[str, Any],
+    ) -> ResolvedTarget:
+        return await resolver.resolve(step.locators, values)
 
     async def _perform_action(
         self,
@@ -180,7 +192,7 @@ class ReplayEngine:
         observed: str,
     ) -> ReplayResult:
         paths = await self._capture_failure(run_id, step_index, code.lower())
-        return ReplayResult(
+        result = ReplayResult(
             run_id=run_id,
             capability_id=str(artifact.capability_id),
             capability_version=artifact.capability_version,
@@ -196,6 +208,8 @@ class ReplayEngine:
                 evidence_paths=paths,
             ),
         )
+        self._record("replay_failed", result.model_dump(mode="json"))
+        return result
 
     async def _check_all(
         self,
@@ -210,11 +224,14 @@ class ReplayEngine:
         return None
 
     async def _extract_outputs(
-        self, artifact: CapabilityArtifact, resolver: LocatorResolver
+        self,
+        artifact: CapabilityArtifact,
+        resolver: LocatorResolver,
+        values: dict[str, Any],
     ) -> dict[str, Any]:
         outputs: dict[str, Any] = {}
         for spec in artifact.outputs:
-            target = await resolver.resolve(spec.extraction.locators)
+            target = await resolver.resolve(spec.extraction.locators, values)
             if target.locator is None:
                 raise LocatorResolutionError(
                     [f"output {spec.name} cannot use coordinate-only extraction"]
@@ -245,8 +262,9 @@ class ReplayEngine:
         *,
         credentials: dict[str, str] | None = None,
         keep_session_open: bool = False,
+        run_id: str | None = None,
     ) -> ReplayResult:
-        run_id = f"replay-{uuid4().hex[:12]}"
+        run_id = run_id or f"replay-{uuid4().hex[:12]}"
         started = time.monotonic()
         completed_steps = 0
         credentials = credentials or {}
@@ -292,9 +310,29 @@ class ReplayEngine:
         resolver = LocatorResolver(page)
         verifier = CheckpointVerifier(page, resolver)
         classifier = OutcomeClassifier(verifier)
+        self._record(
+            "replay_started",
+            {
+                "capability_id": str(artifact.capability_id),
+                "capability_version": artifact.capability_version,
+                "artifact_hash": artifact.content_hash,
+                "parameters": values,
+                "entry_url": entry_url,
+            },
+        )
 
         try:
             for index, step in enumerate(artifact.steps):
+                self._record(
+                    "step_started",
+                    {
+                        "step_index": index,
+                        "step_id": step.id,
+                        "description": step.description,
+                        "action": step.action,
+                        "risk_class": step.risk_class,
+                    },
+                )
                 failed_precondition = await self._check_all(verifier, step.preconditions, values)
                 if failed_precondition:
                     return await self._failure_result(
@@ -340,6 +378,13 @@ class ReplayEngine:
                                 step,
                                 current_url=page.url,
                                 navigation_url=navigation_url,
+                            )
+                            self._record(
+                                "policy_verdict",
+                                {
+                                    "step_id": step.id,
+                                    **verdict.model_dump(mode="json"),
+                                },
                             )
                             if not verdict.allowed:
                                 return await self._failure_result(
@@ -423,13 +468,41 @@ class ReplayEngine:
                                         observed=handoff_check.observed,
                                     )
                                 completed_steps += 1
+                                self._record(
+                                    "step_completed",
+                                    {
+                                        "step_index": index,
+                                        "step_id": step.id,
+                                        "completed_by": "human",
+                                    },
+                                )
                                 break
-                        target = await self._resolve(step, resolver) if step.locators else None
+                        target = (
+                            await self._resolve(step, resolver, values) if step.locators else None
+                        )
+                        if target:
+                            self._record(
+                                "locator_resolved",
+                                {
+                                    "step_id": step.id,
+                                    "kind": target.strategy.kind,
+                                    "rank": target.strategy.rank,
+                                    "reasoning": target.strategy.reasoning,
+                                },
+                            )
                         await self._perform_action(step, target, values, credentials)
+                        self._record(
+                            "action_completed",
+                            {
+                                "step_id": step.id,
+                                "attempt": attempt,
+                                "url": page.url,
+                            },
+                        )
                         classified = await classifier.classify(step.observation_rules, values)
                         if classified:
                             if classified.classification == OutcomeClass.BUSINESS:
-                                return ReplayResult(
+                                result = ReplayResult(
                                     run_id=run_id,
                                     capability_id=str(artifact.capability_id),
                                     capability_version=artifact.capability_version,
@@ -439,6 +512,8 @@ class ReplayEngine:
                                     completed_steps=completed_steps,
                                     duration_ms=int((time.monotonic() - started) * 1000),
                                 )
+                                self._record("business_outcome", result.model_dump(mode="json"))
+                                return result
                             if classified.classification == OutcomeClass.HARD_FAILURE:
                                 return await self._failure_result(
                                     run_id=run_id,
@@ -472,7 +547,7 @@ class ReplayEngine:
                             if classified.recovery == RecoveryAction.DISMISS:
                                 assert classified.rule.recovery_locator is not None
                                 recovery_target = await resolver.resolve(
-                                    [classified.rule.recovery_locator]
+                                    [classified.rule.recovery_locator], values
                                 )
                                 if recovery_target.locator is None:
                                     raise RuntimeError("dismiss recovery cannot use coordinates")
@@ -507,6 +582,15 @@ class ReplayEngine:
                             )
                             raise RuntimeError(last_error)
                         completed_steps += 1
+                        self._record(
+                            "step_completed",
+                            {
+                                "step_index": index,
+                                "step_id": step.id,
+                                "attempt": attempt,
+                                "completed_by": "automation",
+                            },
+                        )
                         break
                     except Exception as exc:
                         last_error = f"{type(exc).__name__}: {exc}"
@@ -541,6 +625,14 @@ class ReplayEngine:
                             recovered = await self._check_all(verifier, step.postconditions, values)
                             if step.postconditions and recovered is None:
                                 completed_steps += 1
+                                self._record(
+                                    "step_completed",
+                                    {
+                                        "step_index": index,
+                                        "step_id": step.id,
+                                        "completed_by": "human_recovery",
+                                    },
+                                )
                                 break
                             continue
                         if attempt >= total_attempts:
@@ -577,7 +669,7 @@ class ReplayEngine:
                     observed=final.observed,
                 )
             try:
-                outputs = await self._extract_outputs(artifact, resolver)
+                outputs = await self._extract_outputs(artifact, resolver, values)
             except Exception as exc:
                 return await self._failure_result(
                     run_id=run_id,
@@ -591,7 +683,7 @@ class ReplayEngine:
                     expected="all declared outputs",
                     observed=f"{type(exc).__name__}: {exc}",
                 )
-            return ReplayResult(
+            result = ReplayResult(
                 run_id=run_id,
                 capability_id=str(artifact.capability_id),
                 capability_version=artifact.capability_version,
@@ -600,6 +692,8 @@ class ReplayEngine:
                 completed_steps=completed_steps,
                 duration_ms=int((time.monotonic() - started) * 1000),
             )
+            self._record("replay_succeeded", result.model_dump(mode="json"))
+            return result
         finally:
             if owns_session and not keep_session_open:
                 await self.surface.close()

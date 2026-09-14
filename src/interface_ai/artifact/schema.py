@@ -226,6 +226,7 @@ class OutputSpec(StrictModel):
     type: ValueType
     description: str
     required: bool = True
+    sensitive: bool = False
     extraction: ExtractionSpec
 
 
@@ -274,14 +275,53 @@ class CapabilityArtifact(StrictModel):
 
         parameter_names = {item.name for item in self.input_parameters}
         credential_names = {item.name for item in self.credential_references}
+        template_strings: list[str] = [self.target.entry_url_template]
         for step in self.steps:
             if step.credential_ref and step.credential_ref not in credential_names:
                 raise ValueError(f"unknown credential reference: {step.credential_ref}")
             if step.value_template:
-                placeholders = set(re.findall(r"\{([a-z][a-z0-9_]*)\}", step.value_template))
-                unknown = placeholders - parameter_names
-                if unknown:
-                    raise ValueError(f"unknown parameter placeholders: {sorted(unknown)}")
+                template_strings.append(step.value_template)
+            for locator in step.locators:
+                template_strings.extend(
+                    value
+                    for value in (
+                        locator.value,
+                        locator.role,
+                        locator.name,
+                        locator.anchor_text,
+                        *locator.frame_path,
+                    )
+                    if value
+                )
+            for checkpoint in [*step.preconditions, *step.postconditions]:
+                if isinstance(checkpoint.expected, str):
+                    template_strings.append(checkpoint.expected)
+                if checkpoint.locator and checkpoint.locator.value:
+                    template_strings.append(checkpoint.locator.value)
+            for rule in step.observation_rules:
+                if isinstance(rule.when.expected, str):
+                    template_strings.append(rule.when.expected)
+                if rule.when.locator and rule.when.locator.value:
+                    template_strings.append(rule.when.locator.value)
+                if rule.recovery_locator and rule.recovery_locator.value:
+                    template_strings.append(rule.recovery_locator.value)
+        for output in self.outputs:
+            template_strings.extend(
+                value
+                for locator in output.extraction.locators
+                for value in (locator.value, locator.name, locator.anchor_text)
+                if value
+            )
+        if isinstance(self.success_checkpoint.expected, str):
+            template_strings.append(self.success_checkpoint.expected)
+        placeholders = {
+            placeholder
+            for value in template_strings
+            for placeholder in re.findall(r"\{([a-z][a-z0-9_]*)\}", value)
+        }
+        unknown = placeholders - parameter_names
+        if unknown:
+            raise ValueError(f"unknown parameter placeholders: {sorted(unknown)}")
         return self
 
     def canonical_payload(self) -> dict[str, Any]:

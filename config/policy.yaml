@@ -35,6 +35,11 @@ redaction:
     - member_id
     - patient_id
     - mrn
+    - patient_name
+    - date_of_birth
+    - insurance
+    - claim_id
+    - latest_claim
   patterns:
     - name: us_ssn
       regex: "\\b\\d{3}-\\d{2}-\\d{4}\\b"

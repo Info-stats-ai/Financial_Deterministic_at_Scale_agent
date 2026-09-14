@@ -1,0 +1,12 @@
+{
+  "capability_id": "5fc5bf56-60b1-502f-87ec-26c74f30e58d",
+  "capability_version": "1.0.0",
+  "completed_steps": 3,
+  "duration_ms": 2488,
+  "failure": null,
+  "outcome_code": "PATIENT_NOT_FOUND",
+  "outcome_message": "No patient matches the supplied synthetic MRN",
+  "outputs": null,
+  "run_id": "replay-not-found",
+  "status": "business_outcome"
+}

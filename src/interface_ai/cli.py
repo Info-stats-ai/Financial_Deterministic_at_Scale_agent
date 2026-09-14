@@ -64,14 +64,24 @@ async def run_replay(
     policy_gate: PolicyGate,
     headless: bool,
     operator_port: int | None,
+    offline_har: Path | None,
 ) -> ReplayResult:
-    surface = PlaywrightWebSurface(headless=False if operator_port else headless)
+    surface = PlaywrightWebSurface(
+        headless=False if operator_port else headless,
+        replay_har_path=offline_har,
+    )
     if operator_port is None:
         return await ReplayEngine(
             surface,
             evidence_dir=evidence.run_dir,
+            evidence=evidence,
             policy_gate=policy_gate,
-        ).run(artifact, parameters, credentials=credentials)
+        ).run(
+            artifact,
+            parameters,
+            credentials=credentials,
+            run_id=evidence.run_id,
+        )
 
     session = SessionManager(
         surface,
@@ -85,9 +95,15 @@ async def run_replay(
         return await ReplayEngine(
             surface,
             evidence_dir=evidence.run_dir,
+            evidence=evidence,
             policy_gate=policy_gate,
             handoff=handoff,
-        ).run(artifact, parameters, credentials=credentials)
+        ).run(
+            artifact,
+            parameters,
+            credentials=credentials,
+            run_id=evidence.run_id,
+        )
     finally:
         await handoff.stop_operator_console()
 
@@ -232,6 +248,17 @@ def replay(
             max=65535,
         ),
     ] = None,
+    offline_har: Annotated[
+        Path | None,
+        typer.Option(
+            exists=True,
+            help="Serve recorded network responses and block live network fallback",
+        ),
+    ] = None,
+    evidence_label: Annotated[
+        str | None,
+        typer.Option(help="Stable label for a curated evidence run"),
+    ] = None,
 ) -> None:
     """Replay a saved artifact with no LLM in the decision path."""
 
@@ -256,7 +283,9 @@ def replay(
         for reference in artifact.credential_references
         if reference.name in os.environ
     }
-    run_id = f"replay-{uuid4().hex[:12]}"
+    if evidence_label and not evidence_label.replace("-", "").isalnum():
+        raise typer.BadParameter("evidence-label must contain only letters, digits, or hyphens")
+    run_id = f"replay-{evidence_label.lower()}" if evidence_label else f"replay-{uuid4().hex[:12]}"
     run_dir = Path("evidence/replay") / run_id
     policy = load_policy(policy_path)
     redactor = Redactor(policy.redaction)
@@ -277,6 +306,7 @@ def replay(
             policy_gate=PolicyGate(policy),
             headless=headless,
             operator_port=operator_port,
+            offline_har=offline_har,
         )
     )
     evidence.write_json("result.json", result.model_dump(mode="json"))

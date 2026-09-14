@@ -48,7 +48,9 @@ class CheckpointVerifier:
 
             assert checkpoint.locator is not None
             try:
-                target = await self.resolver.resolve([checkpoint.locator])
+                if kind == CheckpointKind.ELEMENT_ABSENT:
+                    await self.page.wait_for_timeout(min(checkpoint.timeout_ms, 1_000))
+                target = await self.resolver.resolve([checkpoint.locator], values)
             except LocatorResolutionError as exc:
                 if kind == CheckpointKind.ELEMENT_ABSENT:
                     return CheckpointResult(True, "element absent", str(exc))

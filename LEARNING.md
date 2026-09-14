@@ -469,3 +469,58 @@ same session; heartbeats and fencing tokens prevent stale owners from acting.
 
 Finite-state machines, mutual exclusion, session affinity, leases, fencing tokens,
 human-in-the-loop control planes, event capture, and post-handoff invariant verification.
+
+## Phase 9 — Evidence, failure forensics, and offline replay
+
+### Challenge
+
+A successful terminal message is not auditable evidence, and a third-party demo may be
+offline when a reviewer runs the project. Evidence must be useful for debugging without
+leaking entered values, while offline replay must never silently fall back to the network.
+
+### Options considered
+
+1. Save only console output.
+2. Mock the entire application.
+3. Record structured events plus masked screenshots and a network HAR fixture.
+
+### Decision and reasons
+
+Use append-only JSONL for event timelines, JSON for caller result contracts, masked PNGs
+for failure state, and a Playwright HAR for network-isolated replay. The HAR adapter uses
+`not_found="abort"`, proving an unrecorded request fails rather than reaching the internet.
+The same reviewed artifact runs live and against the fixture.
+
+### Implementation
+
+- Replay records start, step, policy, selected locator tier/reasoning, action completion,
+  business outcome, success, and detailed failure events.
+- Evidence correlation uses one explicit run ID through CLI, engine, filenames, and logs.
+- Sensitive parameters and credential values are registered before the first write.
+- All input fields and known sensitive result regions are masked in persisted screenshots.
+- Three curated replay cases exist: success, `PATIENT_NOT_FOUND`, and a wrong-password hard
+  failure with masked screenshot and expected/observed details.
+- The golden artifact uses parameterized XPath anchored to semantic table-column names, so
+  shuffled columns do not affect the selected row.
+- An automated test replays the full artifact from the committed HAR with live network
+  fallback disabled.
+
+### Trade-off and bottleneck
+
+HAR files are relatively large and couple tests to captured frontend assets. They are test
+fixtures, not production replay. The bundled third-party JavaScript contains only the
+vendor's public synthetic test records and demo login; artifacts and logs contain no raw
+values. Attempts to text-rewrite minified code were rejected because they corrupted
+identifiers and reduced reproducibility.
+
+### Scale path
+
+Send event envelopes to an append-only stream, store screenshots/traces in encrypted object
+storage, and retain only content-addressed references in run metadata. Apply tenant-specific
+retention, access control, legal hold, and deletion policy. Sample successful rich evidence
+while retaining complete failure evidence, with regulated fields masked before upload.
+
+### Concepts learned
+
+Correlation IDs, structured logging, append-only events, forensic evidence, data retention,
+network virtualization, hermetic tests, content masking, and test-versus-production boundaries.

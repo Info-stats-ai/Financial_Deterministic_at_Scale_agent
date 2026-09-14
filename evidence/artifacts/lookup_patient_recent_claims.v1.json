@@ -1,0 +1,447 @@
+{
+  "schema_version": "1.0.0",
+  "capability_version": "1.0.0",
+  "capability_id": "5fc5bf56-60b1-502f-87ec-26c74f30e58d",
+  "name": "lookup_patient_recent_claims",
+  "description": "Look up a synthetic patient by MRN, select the patient, expand recent claims, and return the declared summary fields",
+  "target": {
+    "app_id": "cloudcruise-healthcare",
+    "vendor_product": "CloudCruise XPath Cascade Healthcare",
+    "surface": "web",
+    "entry_url_template": "https://demo.cloudcruise.com/xpath-cascade-healthcare?reset=true",
+    "allowed_origin": "https://demo.cloudcruise.com",
+    "product_version": "1"
+  },
+  "input_parameters": [
+    {
+      "name": "member_id",
+      "type": "string",
+      "description": "Synthetic medical record number from the public demo",
+      "required": true,
+      "default": null,
+      "pattern": "^(?:MRN|DEMO)-\\d{5}$",
+      "examples": [],
+      "sensitive": true
+    }
+  ],
+  "credential_references": [
+    {
+      "name": "DEMO_USERNAME",
+      "purpose": "Public synthetic demo provider ID"
+    },
+    {
+      "name": "DEMO_PASSWORD",
+      "purpose": "Public synthetic demo password"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "patient_name",
+      "type": "string",
+      "description": "Selected synthetic patient's display name",
+      "required": true,
+      "sensitive": true,
+      "extraction": {
+        "locators": [
+          {
+            "kind": "xpath",
+            "rank": 1,
+            "reasoning": "Semantic table-column anchor avoids dependence on shuffled column order",
+            "value": "//tr[.//td[@data-column='mrn' and normalize-space()='{member_id}']]//td[@data-column='patient-name']",
+            "role": null,
+            "name": null,
+            "frame_path": [],
+            "anchor_text": null,
+            "coordinates": null
+          }
+        ],
+        "attribute": "text_content",
+        "transform": null
+      }
+    },
+    {
+      "name": "patient_status",
+      "type": "string",
+      "description": "Selected synthetic patient's active status",
+      "required": true,
+      "sensitive": false,
+      "extraction": {
+        "locators": [
+          {
+            "kind": "xpath",
+            "rank": 1,
+            "reasoning": "Semantic table-column anchor avoids dependence on shuffled column order",
+            "value": "//tr[.//td[@data-column='mrn' and normalize-space()='{member_id}']]//td[@data-column='status']",
+            "role": null,
+            "name": null,
+            "frame_path": [],
+            "anchor_text": null,
+            "coordinates": null
+          }
+        ],
+        "attribute": "text_content",
+        "transform": null
+      }
+    },
+    {
+      "name": "insurance",
+      "type": "string",
+      "description": "Selected synthetic patient's insurer",
+      "required": true,
+      "sensitive": true,
+      "extraction": {
+        "locators": [
+          {
+            "kind": "xpath",
+            "rank": 1,
+            "reasoning": "Semantic table-column anchor avoids dependence on shuffled column order",
+            "value": "//tr[.//td[@data-column='mrn' and normalize-space()='{member_id}']]//td[@data-column='insurance']",
+            "role": null,
+            "name": null,
+            "frame_path": [],
+            "anchor_text": null,
+            "coordinates": null
+          }
+        ],
+        "attribute": "text_content",
+        "transform": null
+      }
+    },
+    {
+      "name": "latest_claim",
+      "type": "string",
+      "description": "First claim shown in the expanded recent-claims panel",
+      "required": true,
+      "sensitive": true,
+      "extraction": {
+        "locators": [
+          {
+            "kind": "xpath",
+            "rank": 1,
+            "reasoning": "Anchors extraction to the labelled Recent Claims panel",
+            "value": "(//button[@aria-label='Recent Claims']/following-sibling::div//div[not(*)])[1]",
+            "role": null,
+            "name": null,
+            "frame_path": [],
+            "anchor_text": null,
+            "coordinates": null
+          }
+        ],
+        "attribute": "text_content",
+        "transform": null
+      }
+    }
+  ],
+  "steps": [
+    {
+      "id": "enter-provider-id",
+      "description": "Enter the public demo provider ID",
+      "action": "type",
+      "locators": [
+        {
+          "kind": "role_name",
+          "rank": 1,
+          "reasoning": "Accessible role and visible name are stable across shuffled table layouts",
+          "value": null,
+          "role": "textbox",
+          "name": "Provider ID",
+          "frame_path": [],
+          "anchor_text": null,
+          "coordinates": null
+        },
+        {
+          "kind": "label",
+          "rank": 2,
+          "reasoning": "Visible form label survives CSS and layout changes",
+          "value": "Provider ID",
+          "role": null,
+          "name": null,
+          "frame_path": [],
+          "anchor_text": null,
+          "coordinates": null
+        }
+      ],
+      "value_template": null,
+      "credential_ref": "DEMO_USERNAME",
+      "preconditions": [],
+      "postconditions": [],
+      "observation_rules": [],
+      "retry_policy": {
+        "max_attempts": 2,
+        "initial_delay_ms": 250,
+        "backoff_multiplier": 2.0,
+        "jitter_ratio": 0.1
+      },
+      "risk_class": "safe"
+    },
+    {
+      "id": "enter-password",
+      "description": "Enter the public demo password",
+      "action": "type",
+      "locators": [
+        {
+          "kind": "role_name",
+          "rank": 1,
+          "reasoning": "Accessible role and visible name are stable across shuffled table layouts",
+          "value": null,
+          "role": "textbox",
+          "name": "Password",
+          "frame_path": [],
+          "anchor_text": null,
+          "coordinates": null
+        },
+        {
+          "kind": "label",
+          "rank": 2,
+          "reasoning": "Visible form label survives CSS and layout changes",
+          "value": "Password",
+          "role": null,
+          "name": null,
+          "frame_path": [],
+          "anchor_text": null,
+          "coordinates": null
+        }
+      ],
+      "value_template": null,
+      "credential_ref": "DEMO_PASSWORD",
+      "preconditions": [],
+      "postconditions": [],
+      "observation_rules": [],
+      "retry_policy": {
+        "max_attempts": 2,
+        "initial_delay_ms": 250,
+        "backoff_multiplier": 2.0,
+        "jitter_ratio": 0.1
+      },
+      "risk_class": "safe"
+    },
+    {
+      "id": "sign-in",
+      "description": "Sign in to the synthetic claims portal",
+      "action": "click",
+      "locators": [
+        {
+          "kind": "role_name",
+          "rank": 1,
+          "reasoning": "Accessible role and visible name are stable across shuffled table layouts",
+          "value": null,
+          "role": "button",
+          "name": "Sign in",
+          "frame_path": [],
+          "anchor_text": null,
+          "coordinates": null
+        }
+      ],
+      "value_template": null,
+      "credential_ref": null,
+      "preconditions": [],
+      "postconditions": [
+        {
+          "kind": "text_visible",
+          "description": "Patient workspace loaded",
+          "expected": "Patients",
+          "locator": null,
+          "timeout_ms": 10000
+        }
+      ],
+      "observation_rules": [],
+      "retry_policy": {
+        "max_attempts": 2,
+        "initial_delay_ms": 250,
+        "backoff_multiplier": 2.0,
+        "jitter_ratio": 0.1
+      },
+      "risk_class": "safe"
+    },
+    {
+      "id": "search-member",
+      "description": "Filter patients by synthetic MRN",
+      "action": "type",
+      "locators": [
+        {
+          "kind": "role_name",
+          "rank": 1,
+          "reasoning": "Accessible role and visible name are stable across shuffled table layouts",
+          "value": null,
+          "role": "textbox",
+          "name": "Search patients",
+          "frame_path": [],
+          "anchor_text": null,
+          "coordinates": null
+        }
+      ],
+      "value_template": "{member_id}",
+      "credential_ref": null,
+      "preconditions": [],
+      "postconditions": [
+        {
+          "kind": "element_visible",
+          "description": "Matching patient row has a Select action",
+          "expected": true,
+          "locator": {
+            "kind": "xpath",
+            "rank": 1,
+            "reasoning": "Semantic table-column anchor avoids dependence on shuffled column order",
+            "value": "//tr[.//td[@data-column='mrn' and normalize-space()='{member_id}']]//button[normalize-space()='Select']",
+            "role": null,
+            "name": null,
+            "frame_path": [],
+            "anchor_text": null,
+            "coordinates": null
+          },
+          "timeout_ms": 2000
+        }
+      ],
+      "observation_rules": [
+        {
+          "code": "PATIENT_NOT_FOUND",
+          "classification": "business_outcome",
+          "description": "No patient matches the supplied synthetic MRN",
+          "when": {
+            "kind": "element_absent",
+            "description": "No matching row has a Select action",
+            "expected": true,
+            "locator": {
+              "kind": "xpath",
+              "rank": 1,
+              "reasoning": "Semantic table-column anchor avoids dependence on shuffled column order",
+              "value": "//tr[.//td[@data-column='mrn' and normalize-space()='{member_id}']]//button[normalize-space()='Select']",
+              "role": null,
+              "name": null,
+              "frame_path": [],
+              "anchor_text": null,
+              "coordinates": null
+            },
+            "timeout_ms": 750
+          },
+          "recovery": "stop",
+          "retry_policy": null,
+          "recovery_locator": null,
+          "wait_ms": 500
+        }
+      ],
+      "retry_policy": {
+        "max_attempts": 2,
+        "initial_delay_ms": 250,
+        "backoff_multiplier": 2.0,
+        "jitter_ratio": 0.1
+      },
+      "risk_class": "safe"
+    },
+    {
+      "id": "select-patient",
+      "description": "Select the patient row matching the supplied MRN",
+      "action": "click",
+      "locators": [
+        {
+          "kind": "xpath",
+          "rank": 1,
+          "reasoning": "Semantic table-column anchor avoids dependence on shuffled column order",
+          "value": "//tr[.//td[@data-column='mrn' and normalize-space()='{member_id}']]//button[normalize-space()='Select']",
+          "role": null,
+          "name": null,
+          "frame_path": [],
+          "anchor_text": null,
+          "coordinates": null
+        }
+      ],
+      "value_template": null,
+      "credential_ref": null,
+      "preconditions": [],
+      "postconditions": [
+        {
+          "kind": "text_visible",
+          "description": "Patient summary panel is populated",
+          "expected": "Patient Summary",
+          "locator": null,
+          "timeout_ms": 10000
+        }
+      ],
+      "observation_rules": [],
+      "retry_policy": {
+        "max_attempts": 2,
+        "initial_delay_ms": 250,
+        "backoff_multiplier": 2.0,
+        "jitter_ratio": 0.1
+      },
+      "risk_class": "safe"
+    },
+    {
+      "id": "expand-recent-claims",
+      "description": "Expand the selected patient's recent claims",
+      "action": "click",
+      "locators": [
+        {
+          "kind": "role_name",
+          "rank": 1,
+          "reasoning": "Accessible role and visible name are stable across shuffled table layouts",
+          "value": null,
+          "role": "button",
+          "name": "Recent Claims",
+          "frame_path": [],
+          "anchor_text": null,
+          "coordinates": null
+        }
+      ],
+      "value_template": null,
+      "credential_ref": null,
+      "preconditions": [],
+      "postconditions": [
+        {
+          "kind": "element_visible",
+          "description": "Recent Claims accordion is expanded",
+          "expected": true,
+          "locator": {
+            "kind": "xpath",
+            "rank": 1,
+            "reasoning": "ARIA expanded state verifies the accordion action",
+            "value": "//button[@aria-label='Recent Claims' and @aria-expanded='true']",
+            "role": null,
+            "name": null,
+            "frame_path": [],
+            "anchor_text": null,
+            "coordinates": null
+          },
+          "timeout_ms": 10000
+        }
+      ],
+      "observation_rules": [],
+      "retry_policy": {
+        "max_attempts": 2,
+        "initial_delay_ms": 250,
+        "backoff_multiplier": 2.0,
+        "jitter_ratio": 0.1
+      },
+      "risk_class": "safe"
+    }
+  ],
+  "success_checkpoint": {
+    "kind": "element_visible",
+    "description": "Recent Claims accordion remains expanded",
+    "expected": true,
+    "locator": {
+      "kind": "xpath",
+      "rank": 1,
+      "reasoning": "Final semantic state confirms the requested panel is open",
+      "value": "//button[@aria-label='Recent Claims' and @aria-expanded='true']",
+      "role": null,
+      "name": null,
+      "frame_path": [],
+      "anchor_text": null,
+      "coordinates": null
+    },
+    "timeout_ms": 10000
+  },
+  "metadata": {
+    "recorded_at": "2026-09-14T02:40:30.617848Z",
+    "recorded_by": "human_reviewed_fixture",
+    "source_run_id": "reviewed-golden-before-live-discovery",
+    "approved_for_unattended_replay": false,
+    "tags": [
+      "public-demo",
+      "synthetic-data",
+      "golden-fixture"
+    ]
+  },
+  "content_hash": "sha256:e5c700ff887335e4b932185cf3c1f40fd6ca0ab9270b09d44e9618145e293a1e"
+}

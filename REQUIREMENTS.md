@@ -21,7 +21,7 @@ automated verification, and demonstration evidence are all present.
 | Safe/reversible/risky/irreversible classes | artifact + policy gate | policy tests | risky-step handoff | Implemented; handoff pending |
 | No persisted secrets or raw PII | credential references + redaction writer | redaction tests + repository scan | redacted logs/shots | Implemented; final scan pending |
 | Structured action-and-reason logs | `evidence/recorder.py` | discovery/redaction tests | JSONL | Implemented; curated evidence pending |
-| Rich failure signal | evidence collector | failure test | screenshot + semantic snapshot | Planned |
+| Rich failure signal | masked surface snapshot | failure test | masked screenshot | Implemented |
 | Discovery stuck detection | `discovery/stuck.py` | state-progression tests | intervention event | Implemented; handoff pending |
 | Unrecoverable replay escalation | replay + handoff | integration test | intervention event | Implemented; curated evidence pending |
 | Risky-step escalation | safety + handoff | integration test | handoff log | Implemented; curated evidence pending |
@@ -30,9 +30,9 @@ automated verification, and demonstration evidence are all present.
 | Legacy web/desktop extension seam | `SurfaceDriver` protocol | protocol conformance test | `REPORT.md` design | In progress |
 | Multi-tenant reuse and drift design | artifact metadata + report | document check | `REPORT.md` | Planned |
 | Real discovery evidence | live Claude run | evidence validator | `/evidence/discovery/` | Planned |
-| Successful replay evidence | deterministic live/offline run | evidence validator | `/evidence/replay/success/` | Planned |
-| Exceptional replay evidence | deterministic variant run | evidence validator | `/evidence/replay/error/` | Planned |
-| Offline/no-live-services path | HAR-backed demo mode | offline integration test | README command | Planned |
+| Successful replay evidence | deterministic live/offline run | evidence validator | `/evidence/replay/replay-success/` | Complete |
+| Exceptional replay evidence | deterministic no-result and bad-login runs | evidence validator | `/evidence/replay/replay-not-found/`, `replay-hard-failure/` | Complete |
+| Offline/no-live-services path | HAR-backed demo mode | offline integration test | README command | Implemented; README pending |
 | README exact setup/demo commands | `/README.md` | command smoke test | repository root | Planned |
 | REPORT exact seven headings | `/REPORT.md` | heading validation test | repository root | Planned |
 | Public GitHub repository | configured `origin` | remote and clean-tree checks | public URL | Pending authentication |

@@ -1,0 +1,21 @@
+{
+  "capability_id": "5fc5bf56-60b1-502f-87ec-26c74f30e58d",
+  "capability_version": "1.0.0",
+  "completed_steps": 2,
+  "duration_ms": 21862,
+  "failure": {
+    "code": "STEP_FAILED",
+    "evidence_paths": [
+      "evidence/replay/replay-hard-failure/replay-hard-failure-step-2-step_failed.png"
+    ],
+    "expected": "Sign in to the synthetic claims portal",
+    "observed": "RuntimeError: expected Patients; observed TimeoutError: Locator.wait_for: Timeout 10000ms exceeded.\nCall log:\n  - waiting for get_by_text(\"Patients\").first to be visible\n",
+    "step_id": "sign-in",
+    "step_index": 2
+  },
+  "outcome_code": null,
+  "outcome_message": null,
+  "outputs": null,
+  "run_id": "replay-hard-failure",
+  "status": "hard_failure"
+}
