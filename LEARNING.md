@@ -135,3 +135,59 @@ the same discipline used for public APIs and event schemas.
 
 Intermediate representations, design by contract, schema evolution, semantic versioning,
 canonical serialization, integrity hashing, backward compatibility, and agent tool schemas.
+
+## Phase 3 — Surface abstraction and computer perception
+
+### Challenge
+
+Discovery must act from human-visible evidence even when markup is hostile, while replay
+needs machine-resolvable targets. Letting every module call Playwright directly would bind
+the artifact, policy, and handoff logic to one browser library and make desktop extension
+mostly fictional.
+
+### Options considered
+
+1. Expose Playwright objects throughout the application.
+2. Design a large universal automation API covering every platform feature.
+3. Define a small protocol around observation, action, snapshot, and lifecycle.
+
+### Decision and reasons
+
+Use a narrow `SurfaceDriver` protocol. The web adapter returns a screenshot, an
+accessibility-oriented semantic snapshot, frame metadata, viewport size, URL/title, and a
+state fingerprint. Discovery acts with normalized coordinates; after acting, the adapter
+fingerprints the element under the point so stronger replay locators can be harvested.
+
+### Implementation
+
+- `Observation` combines pixels and semantics; neither is assumed sufficient alone.
+- The semantic snapshot includes visible controls, roles, labels, text, and bounding boxes
+  across reachable frames.
+- `SurfaceAction` normalizes navigate, click, type, select, wait, extract, and dialog
+  dismissal.
+- Actions return duration, before/after URL, extracted value, and target fingerprint.
+- Closing the browser context flushes an optional HAR for reproducible offline use.
+- A real Chromium test proves observation, coordinate typing/clicking, element
+  fingerprinting, and state-change detection.
+
+### Trade-off and bottleneck
+
+The protocol intentionally exposes a common subset. Browser-only features may require
+adapter extensions. Screenshots are token-heavy for an LLM, and semantic snapshots can be
+large on dense legacy pages, so discovery must cap and summarize observations.
+
+The first test found that a label and input can share the same accessible name. That is
+normal, not an edge case: names alone are ambiguous. Replay therefore resolves role plus
+name and requires exactly one match.
+
+### Scale path
+
+Add web-frame and desktop accessibility implementations behind the same protocol. Assign
+drivers through a factory keyed by surface type. Browser workers enforce per-run session
+affinity and resource limits. Store large screenshots/HARs outside event records and pass
+content-addressed references through the system.
+
+### Concepts learned
+
+Dependency inversion, ports and adapters, multimodal perception, session ownership,
+content-addressed state fingerprints, resource bounding, and interface segregation.
