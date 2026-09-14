@@ -60,6 +60,55 @@ def test_trial_score_approves_perfect_offline_pattern() -> None:
     assert report.composite >= EVAL_GATES["composite_min"]
 
 
+def _trial(**kwargs: object) -> TrialRecord:
+    payload = {
+        "scenario": "happy_path",
+        "status": ReplayStatus.SUCCESS,
+        "duration_ms": 1,
+        "locator_kinds": ["role_name"],
+    }
+    payload.update(kwargs)
+    return TrialRecord.model_validate(payload)
+
+
+def test_attack_and_hitl_trials_are_gated() -> None:
+    artifact = load_artifact(Path("evidence/artifacts/lookup_patient_recent_claims.v1.json"))
+    report = score_trials(
+        artifact,
+        [
+            _trial(scenario="happy_path", outputs={"patient_status": "Active"}),
+            _trial(
+                scenario="not_found",
+                status=ReplayStatus.BUSINESS_OUTCOME,
+                outcome_code="PATIENT_NOT_FOUND",
+            ),
+            _trial(
+                scenario="invalid_mrn",
+                status=ReplayStatus.HARD_FAILURE,
+                failure_code="INVALID_INPUT",
+            ),
+            _trial(scenario="bad_credentials", status=ReplayStatus.HARD_FAILURE),
+            _trial(
+                scenario="policy_egress",
+                status=ReplayStatus.HARD_FAILURE,
+                failure_code="ORIGIN_NOT_ALLOWED",
+            ),
+            _trial(
+                scenario="human_recovery",
+                status=ReplayStatus.SUCCESS,
+                outputs={"patient_status": "Active"},
+                handoff_used=True,
+                human_action_count=2,
+            ),
+        ],
+        repeats=1,
+    )
+    assert report.passed
+    assert report.gates["hitl_recovery_rate"] is True
+    assert report.gates["invalid_mrn_fidelity"] is True
+    assert report.metrics["trial_count"] == 6
+
+
 def test_nondeterministic_outputs_fail_gates() -> None:
     artifact = load_artifact(Path("evidence/artifacts/lookup_patient_recent_claims.v1.json"))
     trials = [

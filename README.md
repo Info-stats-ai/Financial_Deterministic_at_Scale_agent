@@ -156,14 +156,18 @@ outcome against the offline HAR, then writes a gate report. `--promote` sets
 ```bash
 uv run capability evaluate \
   --artifact evidence/artifacts/lookup_patient_recent_claims.v1.json \
-  --repeats 5 \
+  --repeats 8 \
+  --hitl-repeats 3 \
   --offline-har evidence/fixtures/cloudcruise-healthcare.har \
+  --live-hitl \
   --promote
 ```
 
-Gates: 100% happy-path success, 100% `PATIENT_NOT_FOUND` fidelity, identical outputs,
-zero coordinate fallback, locator quality ≥ 0.70, composite ≥ 90. Report:
-`evidence/eval/lookup_patient_recent_claims.eval.json`.
+Trials: happy path, two not-found MRNs, invalid MRN, bad password, off-allowlist URL,
+and same-session human recovery after a failed login. `--offline-only` skips live HITL.
+Gates: 100% happy-path success, 100% `PATIENT_NOT_FOUND`, identical outputs, zero
+coordinate fallback, attack fidelity 100%, HITL recovery 100%, locator quality ≥ 0.70,
+composite ≥ 90. Report: `evidence/eval/lookup_patient_recent_claims.eval.json`.
 
 ## Demo 7: agent-facing capability catalog
 

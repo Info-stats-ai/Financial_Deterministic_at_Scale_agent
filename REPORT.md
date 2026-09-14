@@ -73,11 +73,12 @@ UI → `hard_failure` with step, expected, observed, masked screenshot. Replay n
 model “is this an error?” Locator-tier logs are secondary drift telemetry (role/name
 falling to coordinates).
 
-**Result.** Offline eval (5× happy path + 5× not-found, no LLM): 100% success, 100%
-`PATIENT_NOT_FOUND`, identical outputs, 0 coordinate fallbacks, locator quality 0.885,
-contract score 0.981, composite **99.81**. Report: `evidence/eval/lookup_patient_recent_claims.eval.json`.
-The golden artifact is now `approved_for_unattended_replay`. The live discovery draft fails
-those gates (no business rule; brittle CSS). Replay packages contain no Anthropic import.
+**Result.** Offline eval (8× happy path, two not-found MRNs, invalid MRN, bad
+password, policy egress): 100% classified correctly, identical outputs, 0 coordinate
+fallbacks. Same-session human recovery is a scored trial: automation fails login, a clerk
+operator takes the live browser, signs in, resume re-verifies checkpoints. Report:
+`evidence/eval/lookup_patient_recent_claims.eval.json`. The live discovery draft fails
+promotion gates. Replay packages contain no Anthropic import.
 
 # Heterogeneity & multi-tenant
 

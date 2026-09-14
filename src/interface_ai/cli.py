@@ -403,12 +403,20 @@ def _promote_if_passed(artifact: CapabilityArtifact, path: Path, report: EvalRep
 @app.command()
 def evaluate(
     artifact_path: Annotated[Path, typer.Option("--artifact", exists=True)],
-    repeats: Annotated[int, typer.Option(min=1, max=20)] = 5,
+    repeats: Annotated[int, typer.Option(min=1, max=20)] = 8,
+    hitl_repeats: Annotated[int, typer.Option(min=1, max=10)] = 3,
     policy_path: Annotated[Path, typer.Option()] = Path("config/policy.yaml"),
     offline_har: Annotated[Path | None, typer.Option(exists=True)] = Path(
         "evidence/fixtures/cloudcruise-healthcare.har"
     ),
     headless: Annotated[bool, typer.Option()] = True,
+    live_hitl: Annotated[
+        bool,
+        typer.Option(
+            "--live-hitl/--offline-only",
+            help="Include live same-session human-recovery trials",
+        ),
+    ] = True,
     promote: Annotated[
         bool,
         typer.Option(help="If all gates pass, mark the artifact approved for unattended replay"),
@@ -442,7 +450,12 @@ def evaluate(
             offline_har=offline_har,
             work_dir=work_dir,
             headless=headless,
-        ).run(default_healthcare_scenarios(), repeats=repeats)
+            include_live=live_hitl,
+        ).run(
+            default_healthcare_scenarios(),
+            repeats=repeats,
+            hitl_repeats=hitl_repeats,
+        )
     )
     out_dir = Path("evidence/eval")
     out_dir.mkdir(parents=True, exist_ok=True)
