@@ -52,3 +52,18 @@ async def test_observe_act_and_fingerprint() -> None:
         assert after.state_fingerprint != before.state_fingerprint
     finally:
         await surface.close()
+
+
+async def test_browser_process_is_reused_across_contexts() -> None:
+    surface = PlaywrightWebSurface(headless=True, viewport=(800, 600))
+    await surface.start(start_url="data:text/html,<p>one</p>")
+    first_browser = surface.browser
+    await surface.close(shutdown_browser=False)
+    assert surface.page is None
+    assert surface.browser is first_browser
+    await surface.start(start_url="data:text/html,<p>two</p>")
+    try:
+        assert surface.browser is first_browser
+        assert "two" in await surface._require_page().inner_text("p")
+    finally:
+        await surface.close()

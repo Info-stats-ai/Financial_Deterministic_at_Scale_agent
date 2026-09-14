@@ -157,8 +157,10 @@ class PlaywrightWebSurface:
     async def start(self, *, start_url: str | None = None) -> None:
         if self.page is not None:
             raise RuntimeError("surface already started")
-        self._playwright = await async_playwright().start()
-        self.browser = await self._playwright.chromium.launch(headless=self.headless)
+        if self._playwright is None:
+            self._playwright = await async_playwright().start()
+            self.browser = await self._playwright.chromium.launch(headless=self.headless)
+        assert self.browser is not None
         context_options: dict[str, Any] = {
             "viewport": {"width": self.viewport[0], "height": self.viewport[1]},
         }
@@ -176,6 +178,7 @@ class PlaywrightWebSurface:
                 not_found="abort",
                 update=False,
             )
+        self._dialogs = asyncio.Queue()
         self.page = await self.context.new_page()
         self.page.on("dialog", self._dialogs.put_nowait)
         if start_url:
@@ -307,14 +310,15 @@ class PlaywrightWebSurface:
         )
         return path
 
-    async def close(self) -> None:
+    async def close(self, *, shutdown_browser: bool = True) -> None:
         if self.context:
             await self.context.close()  # Closing the context flushes HAR to disk.
-        if self.browser:
-            await self.browser.close()
-        if self._playwright:
-            await self._playwright.stop()
         self.page = None
         self.context = None
-        self.browser = None
-        self._playwright = None
+        if shutdown_browser:
+            if self.browser:
+                await self.browser.close()
+            if self._playwright:
+                await self._playwright.stop()
+            self.browser = None
+            self._playwright = None
