@@ -524,3 +524,28 @@ while retaining complete failure evidence, with regulated fields masked before u
 
 Correlation IDs, structured logging, append-only events, forensic evidence, data retention,
 network virtualization, hermetic tests, content masking, and test-versus-production boundaries.
+
+## Phase 10 — Agent-facing catalog
+
+### Challenge
+
+A capability that only exists as a file path is not how an upstream agent should work. The
+caller needs a name, a typed input schema, and a deterministic result. If invoke re-enters
+discovery, production becomes expensive and non-deterministic.
+
+### Decision and reasons
+
+Add a thin catalog over hashed artifact files. `list_tools()` exports the same JSON Schema
+the artifact already owns. `invoke` resolves a name to a path and calls replay. There is no
+new execution engine and no model in the production path.
+
+### Scale path
+
+Replace the filesystem directory with a registry service: artifact blob in object storage,
+metadata and approval state in Postgres, and `invoke` as an idempotent API. The contract
+stays the same.
+
+### Concepts learned
+
+Service catalogs, tool/function calling, facade pattern, and separating discovery (write
+path) from invocation (read path).

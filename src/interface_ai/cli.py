@@ -15,6 +15,7 @@ from dotenv import load_dotenv
 
 from interface_ai.artifact.io import load_artifact, save_artifact
 from interface_ai.artifact.schema import CapabilityArtifact
+from interface_ai.catalog import CapabilityCatalog, CatalogError
 from interface_ai.core.session import SessionManager
 from interface_ai.discovery.anthropic_client import ClaudeComputerClient
 from interface_ai.discovery.loop import DiscoveryLoop, DiscoveryResult
@@ -179,6 +180,10 @@ def discover(
             max=65535,
         ),
     ] = 8787,
+    evidence_label: Annotated[
+        str | None,
+        typer.Option(help="Stable label for a curated discovery run"),
+    ] = None,
 ) -> None:
     """Run one genuine Claude-driven discovery and save its compiled artifact."""
 
@@ -190,8 +195,18 @@ def discover(
         "DEMO_USERNAME": os.getenv("DEMO_USERNAME", "provider"),
         "DEMO_PASSWORD": os.getenv("DEMO_PASSWORD", "claims123"),
     }
-    run_id = f"discovery-{uuid4().hex[:12]}"
+    if evidence_label and not evidence_label.replace("-", "").isalnum():
+        raise typer.BadParameter("evidence-label must contain only letters, digits, or hyphens")
+    run_id = (
+        f"discovery-{evidence_label.lower()}"
+        if evidence_label
+        else f"discovery-{uuid4().hex[:12]}"
+    )
     run_dir = Path("evidence/discovery") / run_id
+    if evidence_label and run_dir.exists():
+        raise typer.BadParameter(
+            f"curated evidence directory already exists: {run_dir}"
+        )
     policy = load_policy(policy_path)
     evidence = EvidenceRecorder(
         run_dir,
@@ -313,6 +328,44 @@ def replay(
     typer.echo(json.dumps(redactor.redact(result.model_dump(mode="json")), indent=2))
     if result.status.value not in {"success", "business_outcome"}:
         raise typer.Exit(code=2)
+
+
+@app.command()
+def catalog(
+    directory: Annotated[Path, typer.Option(exists=True)] = Path("evidence/artifacts"),
+) -> None:
+    """List reviewed artifacts as agent-callable tool specs."""
+
+    tools = CapabilityCatalog(directory).list_tools()
+    typer.echo(json.dumps(tools, indent=2))
+
+
+@app.command()
+def invoke(
+    name: Annotated[str, typer.Option(help="Capability name from the catalog")],
+    param: Annotated[list[str] | None, typer.Option(help="Invocation input NAME=VALUE")] = None,
+    directory: Annotated[Path, typer.Option(exists=True)] = Path("evidence/artifacts"),
+    policy_path: Annotated[Path, typer.Option()] = Path("config/policy.yaml"),
+    headless: Annotated[bool, typer.Option()] = True,
+    offline_har: Annotated[Path | None, typer.Option(exists=True)] = None,
+    evidence_label: Annotated[str | None, typer.Option()] = None,
+) -> None:
+    """Invoke a cataloged capability by name. This is the agent-facing production path."""
+
+    try:
+        artifact_path = CapabilityCatalog(directory).path_for(name)
+    except CatalogError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    replay(
+        artifact_path=artifact_path,
+        param=param,
+        variant=None,
+        policy_path=policy_path,
+        headless=headless,
+        operator_port=None,
+        offline_har=offline_har,
+        evidence_label=evidence_label or f"invoke-{name.replace('_', '-')}",
+    )
 
 
 if __name__ == "__main__":
