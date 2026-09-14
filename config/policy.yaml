@@ -1,0 +1,41 @@
+version: "1"
+
+network:
+  allowed_origins:
+    - "https://demo.cloudcruise.com"
+  allowed_path_patterns:
+    - "^/xpath-cascade-healthcare(?:/.*)?$"
+  block_downloads: true
+  block_popups_to_unlisted_origins: true
+
+actions:
+  allowed:
+    - navigate
+    - click
+    - type
+    - select
+    - wait
+    - extract
+    - dismiss_dialog
+  risky_text_patterns:
+    - "(?i)submit\\s+claim"
+    - "(?i)finalize"
+    - "(?i)confirm\\s+(submission|payment|transfer)"
+  risky_requires: human_approval
+
+redaction:
+  sensitive_keys:
+    - password
+    - token
+    - authorization
+    - api_key
+    - ssn
+    - social_security_number
+    - account_number
+  patterns:
+    - name: us_ssn
+      regex: "\\b\\d{3}-\\d{2}-\\d{4}\\b"
+    - name: bearer_token
+      regex: "(?i)bearer\\s+[a-z0-9._~+/=-]+"
+    - name: api_key
+      regex: "(?i)(api[_-]?key\\s*[=:]\\s*)\\S+"

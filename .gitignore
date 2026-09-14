@@ -1,0 +1,16 @@
+.DS_Store
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+playwright-report/
+test-results/
+artifacts/runtime/
+evidence/runtime/
+*.har
+
+# Keep curated, redacted interview evidence.
+!evidence/fixtures/*.har
