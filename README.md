@@ -8,7 +8,7 @@ policy → same-session human handoff → evidence. The target is CloudCruise's 
 synthetic** healthcare demo (fake credentials `provider` / `claims123`). This repository
 is not affiliated with CloudCruise and contains no real patient or banking data.
 
-**Public repository:** https://github.com/Info-stats-ai/Financial_Deterministic_at_Scale_agent
+
 
 | Read first | What it is |
 |---|---|
@@ -19,7 +19,7 @@ is not affiliated with CloudCruise and contains no real patient or banking data.
 
 - Python 3.11+
 - [`uv`](https://docs.astral.sh/uv/)
-- An Anthropic API key with Claude computer-use access — **live discovery only**
+- An Anthropic API key 
 
 ```bash
 git clone https://github.com/Info-stats-ai/Financial_Deterministic_at_Scale_agent.git
@@ -29,8 +29,7 @@ uv run playwright install chromium
 cp .env.example .env
 ```
 
-`.env` is gitignored. Set `ANTHROPIC_API_KEY` only if you re-run live discovery. The
-committed demo username/password are the public synthetic credentials from the demo site.
+
 
 ## Demo path: discover, then replay the resulting artifact
 
