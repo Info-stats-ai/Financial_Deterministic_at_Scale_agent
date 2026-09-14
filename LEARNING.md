@@ -80,3 +80,58 @@ events through a broker. Idempotency keys prevent duplicate capability invocatio
 
 Modular monolith, bounded contexts, process ownership, session affinity, configuration
 boundaries, secret hygiene, and evolutionary architecture.
+
+## Phase 2 — Artifact as a durable contract
+
+### Challenge
+
+A successful model transcript is evidence of one run, not a reusable capability. Raw
+coordinates, prose, and model reasoning cannot tell a deterministic executor which inputs
+are valid, what outputs to return, which outcomes are legitimate, or how to prove success.
+
+### Options considered
+
+1. Persist the model transcript and ask another model to replay it.
+2. Generate Playwright source code directly.
+3. Compile discovery into a typed, surface-aware intermediate representation.
+
+### Decision and reasons
+
+Use strict Pydantic models as a versioned intermediate representation. The contract has
+typed inputs and outputs, credential references, ordered steps, ranked locator strategies
+with reasoning, pre/postconditions, business-outcome rules, retry policy, risk class, and
+an overall success checkpoint. It exports a JSON Schema that an upstream agent can use as
+a tool contract.
+
+The artifact is model-independent and the replay path never needs discovery reasoning.
+Secrets are referenced by environment-variable name; values are never serialized.
+
+### Implementation
+
+- Unknown fields are rejected instead of silently ignored.
+- Cross-field validators catch duplicate IDs, invalid action shapes, unknown parameter
+  placeholders, unknown credential references, and ambiguous locator ranks.
+- `schema_version` controls structural compatibility; `capability_version` controls
+  behavioral evolution.
+- Canonical JSON is hashed with SHA-256. Loading verifies the hash, detecting accidental
+  edits or tampering.
+- Tests prove serialization round trips, hash verification, strict tool input schema, and
+  invalid-contract rejection.
+
+### Trade-off and bottleneck
+
+Strict contracts make evolution deliberate. Adding or changing a required field needs a
+migration rather than an ad hoc edit. That cost is desirable for replay reliability, but a
+large artifact registry would need compatibility tooling.
+
+### Scale path
+
+Store immutable artifact versions in object storage and index metadata in a registry.
+Publish schema migrations as pure functions, enforce backward-compatibility in CI, approve
+specific hashes for unattended use, and route invocations by capability version. This is
+the same discipline used for public APIs and event schemas.
+
+### Concepts learned
+
+Intermediate representations, design by contract, schema evolution, semantic versioning,
+canonical serialization, integrity hashing, backward compatibility, and agent tool schemas.
