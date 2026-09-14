@@ -102,9 +102,7 @@ class ReplayEngine:
                 )
             value = credentials[step.credential_ref]
         elif step.value_template:
-            value = step.value_template.format_map(
-                {key: str(item) for key, item in values.items()}
-            )
+            value = step.value_template.format_map({key: str(item) for key, item in values.items()})
 
         if action == ActionType.NAVIGATE:
             if not value:
@@ -153,9 +151,7 @@ class ReplayEngine:
             raise ValueError(f"coordinate fallback does not support {action}")
         return None
 
-    async def _capture_failure(
-        self, run_id: str, step_index: int | None, suffix: str
-    ) -> list[str]:
+    async def _capture_failure(self, run_id: str, step_index: int | None, suffix: str) -> list[str]:
         if self.evidence_dir is None:
             return []
         if self.surface.page is None:
@@ -295,9 +291,7 @@ class ReplayEngine:
 
         try:
             for index, step in enumerate(artifact.steps):
-                failed_precondition = await self._check_all(
-                    verifier, step.preconditions, values
-                )
+                failed_precondition = await self._check_all(verifier, step.preconditions, values)
                 if failed_precondition:
                     return await self._failure_result(
                         run_id=run_id,
@@ -332,10 +326,7 @@ class ReplayEngine:
                                 and step.value_template
                             ):
                                 navigation_url = step.value_template.format_map(
-                                    {
-                                        key: str(item)
-                                        for key, item in values.items()
-                                    }
+                                    {key: str(item) for key, item in values.items()}
                                 )
                             verdict = self.policy_gate.check_step(
                                 step,
@@ -368,17 +359,9 @@ class ReplayEngine:
                                     expected="human approval before execution",
                                     observed=verdict.reason,
                                 )
-                        target = (
-                            await self._resolve(step, resolver)
-                            if step.locators
-                            else None
-                        )
-                        await self._perform_action(
-                            step, target, values, credentials
-                        )
-                        classified = await classifier.classify(
-                            step.observation_rules, values
-                        )
+                        target = await self._resolve(step, resolver) if step.locators else None
+                        await self._perform_action(step, target, values, credentials)
+                        classified = await classifier.classify(step.observation_rules, values)
                         if classified:
                             if classified.classification == OutcomeClass.BUSINESS:
                                 return ReplayResult(
@@ -389,9 +372,7 @@ class ReplayEngine:
                                     outcome_code=classified.code,
                                     outcome_message=classified.description,
                                     completed_steps=completed_steps,
-                                    duration_ms=int(
-                                        (time.monotonic() - started) * 1000
-                                    ),
+                                    duration_ms=int((time.monotonic() - started) * 1000),
                                 )
                             if classified.classification == OutcomeClass.HARD_FAILURE:
                                 return await self._failure_result(
@@ -406,9 +387,7 @@ class ReplayEngine:
                                     expected="declared successful step state",
                                     observed=classified.description,
                                 )
-                            last_error = (
-                                f"{classified.code}: {classified.description}"
-                            )
+                            last_error = f"{classified.code}: {classified.description}"
                             if classified.recovery in {
                                 RecoveryAction.ESCALATE,
                                 RecoveryAction.REAUTHENTICATE,
@@ -431,9 +410,7 @@ class ReplayEngine:
                                     [classified.rule.recovery_locator]
                                 )
                                 if recovery_target.locator is None:
-                                    raise RuntimeError(
-                                        "dismiss recovery cannot use coordinates"
-                                    )
+                                    raise RuntimeError("dismiss recovery cannot use coordinates")
                                 await recovery_target.locator.click()
                             elif classified.recovery in {
                                 RecoveryAction.WAIT,
@@ -484,9 +461,7 @@ class ReplayEngine:
                         delay = policy.initial_delay_ms * (
                             policy.backoff_multiplier ** (attempt - 1)
                         )
-                        jitter = 1 + rng.uniform(
-                            -policy.jitter_ratio, policy.jitter_ratio
-                        )
+                        jitter = 1 + rng.uniform(-policy.jitter_ratio, policy.jitter_ratio)
                         await asyncio.sleep(delay * jitter / 1000)
 
             final = await verifier.verify(artifact.success_checkpoint, values)

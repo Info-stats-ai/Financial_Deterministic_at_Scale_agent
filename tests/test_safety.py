@@ -48,12 +48,8 @@ def test_policy_allows_only_configured_origin_route_and_action() -> None:
         click_step(),
         current_url="https://demo.cloudcruise.com/xpath-cascade-healthcare",
     )
-    blocked_origin = gate.check_step(
-        click_step(), current_url="https://attacker.example/steal"
-    )
-    blocked_route = gate.check_step(
-        click_step(), current_url="https://demo.cloudcruise.com/admin"
-    )
+    blocked_origin = gate.check_step(click_step(), current_url="https://attacker.example/steal")
+    blocked_route = gate.check_step(click_step(), current_url="https://demo.cloudcruise.com/admin")
 
     assert allowed.allowed
     assert not blocked_origin.allowed
@@ -66,9 +62,7 @@ def test_risk_class_and_text_both_require_human_approval() -> None:
     gate = policy()
     url = "https://demo.cloudcruise.com/xpath-cascade-healthcare"
 
-    declared = gate.check_step(
-        click_step(risk=RiskClass.IRREVERSIBLE), current_url=url
-    )
+    declared = gate.check_step(click_step(risk=RiskClass.IRREVERSIBLE), current_url=url)
     inferred = gate.check_step(click_step("Submit Claim"), current_url=url)
 
     assert declared.allowed and declared.requires_human_approval
@@ -105,9 +99,7 @@ async def test_replay_fails_closed_before_opening_unlisted_target() -> None:
         }
     )
 
-    result = await ReplayEngine(surface, policy_gate=gate).run(
-        artifact, {"member_id": "MRN-10042"}
-    )
+    result = await ReplayEngine(surface, policy_gate=gate).run(artifact, {"member_id": "MRN-10042"})
 
     assert result.status == ReplayStatus.HARD_FAILURE
     assert result.failure

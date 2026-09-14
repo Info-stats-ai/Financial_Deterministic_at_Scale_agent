@@ -55,6 +55,7 @@ SEMANTIC_SNAPSHOT_JS = """
           || el.getAttribute('placeholder') || el.innerText?.trim().slice(0, 160) || null,
         text: el.innerText?.trim().slice(0, 240) || null,
         type: el.getAttribute('type') || null,
+        value_state: 'value' in el ? (el.value ? 'set' : 'empty') : null,
         disabled: Boolean(el.disabled),
         box: {x: rect.x, y: rect.y, width: rect.width, height: rect.height}
       };

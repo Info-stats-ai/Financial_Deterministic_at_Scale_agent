@@ -348,3 +348,66 @@ immutable audit stream without storing the sensitive action payload.
 
 Policy enforcement points, fail-closed authorization, defense in depth, configuration
 versioning, data-loss prevention, least privilege, audit logs, and TOCTOU avoidance.
+
+## Phase 7 — Bounded LLM discovery and artifact compilation
+
+### Challenge
+
+An LLM is useful precisely because the first run is uncertain, but uncertainty cannot leak
+into production replay. The discovery loop also processes untrusted pixels and page text,
+incurs model cost, and can repeat actions forever without explicit limits.
+
+### Options considered
+
+1. Give Claude DOM selectors and persist its transcript.
+2. Ask Claude to generate Playwright source code.
+3. Let Claude use the UI visually, record successful targets, and compile a typed artifact.
+
+### Decision and reasons
+
+Use Anthropic's GA `computer_toolset_20260801` with Claude Sonnet 5. The model receives a
+screenshot plus a bounded accessibility-oriented summary and returns official computer
+member calls. Playwright executes coordinates after policy checks. A custom completion tool
+provides structured success evidence, but the artifact compiler—not the model—owns schema
+construction.
+
+### Implementation
+
+- The loop has wall-clock and action budgets, catches model errors, supports batched calls
+  in order, and returns a result for every member call as required by the API contract.
+- Repeated identical actions or unchanged UI states trigger stuck escalation.
+- Page instructions are explicitly treated as untrusted; final consequential actions are
+  forbidden by prompt and independently intercepted by policy.
+- Element fingerprints from successful coordinate actions become ranked semantic,
+  structural, and coordinate locator candidates.
+- Click-then-type pairs compile into parameter or credential bindings. Unknown literal
+  typed text fails compilation instead of leaking into the artifact.
+- Output values locate elements only during compilation; the saved extraction locators do
+  not persist those observed values.
+- JSONL model/action evidence is append-only and all runtime credentials and parameter
+  values are removed before writes.
+- A fake-model Chromium integration test proves the complete goal-to-artifact loop without
+  pretending it is the required real evidence run.
+
+### Trade-off and bottleneck
+
+Computer use adds roughly thousands of tool-definition tokens per model turn and screenshot
+latency dominates. Semantic summaries are capped to control context size. Compilation is
+conservative: ambiguous outputs or unbound typed values stop for review rather than
+producing a weak artifact.
+
+The code path is verified, but the mandatory genuine run remains blocked until an
+`ANTHROPIC_API_KEY` is provided locally. Simulated tests are labeled as tests and will not
+be presented as live evidence.
+
+### Scale path
+
+Discovery is an authoring/control-plane workload, not the production data plane. Queue it
+separately, enforce per-user budgets, isolate browsers in short-lived sandboxes, require
+artifact review/approval, and measure compiler rejection and locator-tier quality. Replay
+remains a separate cheap worker pool with no model access.
+
+### Concepts learned
+
+Agent loops, client toolsets, tool-result protocols, prompt injection boundaries, control
+plane versus data plane, compilation, conservative failure, token budgeting, and sandboxing.

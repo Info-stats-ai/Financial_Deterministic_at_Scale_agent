@@ -15,9 +15,7 @@ REDACTED = "[REDACTED]"
 class Redactor:
     def __init__(self, policy: RedactionPolicy) -> None:
         self.sensitive_keys = {key.lower() for key in policy.sensitive_keys}
-        self.patterns = [
-            (item.name, re.compile(item.regex)) for item in policy.patterns
-        ]
+        self.patterns = [(item.name, re.compile(item.regex)) for item in policy.patterns]
 
     def redact_text(self, value: str) -> str:
         redacted = value
@@ -46,12 +44,7 @@ class Redactor:
         if isinstance(value, str):
             return self.redact_text(value)
         if isinstance(value, Mapping):
-            return {
-                str(key): self.redact(item, parent_key=str(key))
-                for key, item in value.items()
-            }
-        if isinstance(value, Sequence) and not isinstance(
-            value, (str, bytes, bytearray)
-        ):
+            return {str(key): self.redact(item, parent_key=str(key)) for key, item in value.items()}
+        if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
             return [self.redact(item) for item in value]
         return value

@@ -5,9 +5,9 @@ automated verification, and demonstration evidence are all present.
 
 | Requirement | Implementation | Verification | Evidence | Status |
 |---|---|---|---|---|
-| Natural-language goal + target intake | `src/interface_ai/cli.py`, `discovery/loop.py` | discovery tests | discovery JSONL | Planned |
-| Real LLM observe-decide-act loop | `discovery/`, `surface/` | bounded-loop tests + live run | screenshots and discovery JSONL | In progress |
-| No-clean-DOM bias | screenshot coordinates + semantic snapshot in `surface/` | surface tests | live run | In progress |
+| Natural-language goal + target intake | `src/interface_ai/cli.py`, `discovery/loop.py` | discovery tests | discovery JSONL | Implemented; live evidence pending |
+| Real LLM observe-decide-act loop | `discovery/`, `surface/` | bounded-loop tests + live run | screenshots and discovery JSONL | Implemented; API key/live evidence pending |
+| No-clean-DOM bias | screenshot coordinates + semantic snapshot in `surface/` | surface tests | live run | Implemented; live evidence pending |
 | Typed, versioned artifact contract | `artifact/schema.py`, `artifact/io.py` | `test_artifact_schema.py` | saved artifact JSON | Implemented; evidence pending |
 | Ordered actions + locator reasoning | `CapabilityStep`, `LocatorStrategy` | schema and resolver tests | saved artifact JSON | Implemented; replay pending |
 | Typed inputs and outputs | `ParameterSpec`, `OutputSpec` | schema tests | artifact + result | Implemented; evidence pending |
@@ -20,9 +20,9 @@ automated verification, and demonstration evidence are all present.
 | Domain/route/action allowlist | `safety/policy.py` + `config/policy.yaml` | policy tests | policy events | Implemented; evidence pending |
 | Safe/reversible/risky/irreversible classes | artifact + policy gate | policy tests | risky-step handoff | Implemented; handoff pending |
 | No persisted secrets or raw PII | credential references + redaction writer | redaction tests + repository scan | redacted logs/shots | Implemented; final scan pending |
-| Structured action-and-reason logs | `evidence/logger.py` | logger tests | JSONL | Planned |
+| Structured action-and-reason logs | `evidence/recorder.py` | discovery/redaction tests | JSONL | Implemented; curated evidence pending |
 | Rich failure signal | evidence collector | failure test | screenshot + semantic snapshot | Planned |
-| Discovery stuck detection | `discovery/stuck.py` | state-progression tests | intervention event | Planned |
+| Discovery stuck detection | `discovery/stuck.py` | state-progression tests | intervention event | Implemented; handoff pending |
 | Unrecoverable replay escalation | replay + handoff | integration test | intervention event | Planned |
 | Risky-step escalation | safety + handoff | integration test | handoff log | Planned |
 | Same-session human takeover and return | session state machine + operator UI | handoff integration test | human action events | Planned |

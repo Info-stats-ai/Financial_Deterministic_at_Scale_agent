@@ -125,17 +125,13 @@ def replay_artifact() -> CapabilityArtifact:
                 name="patient_name",
                 type=ValueType.STRING,
                 description="Synthetic patient display name",
-                extraction=ExtractionSpec(
-                    locators=[css("[data-output='patient-name']")]
-                ),
+                extraction=ExtractionSpec(locators=[css("[data-output='patient-name']")]),
             ),
             OutputSpec(
                 name="patient_status",
                 type=ValueType.STRING,
                 description="Synthetic patient status",
-                extraction=ExtractionSpec(
-                    locators=[css("[data-output='patient-status']")]
-                ),
+                extraction=ExtractionSpec(locators=[css("[data-output='patient-status']")]),
             ),
         ],
         steps=[
@@ -289,10 +285,7 @@ async def test_recoverable_condition_exhaustion_is_not_hard_failure(
             "target": replay_artifact().target.model_copy(
                 update={
                     "entry_url_template": "data:text/html,"
-                    + quote(
-                        "<button>Search</button>"
-                        "<p>Service temporarily unavailable</p>"
-                    )
+                    + quote("<button>Search</button><p>Service temporarily unavailable</p>")
                 }
             ),
             "steps": [
@@ -321,9 +314,7 @@ async def test_recoverable_condition_exhaustion_is_not_hard_failure(
                             wait_ms=1,
                         )
                     ],
-                    retry_policy=RetryPolicy(
-                        max_attempts=2, initial_delay_ms=1, jitter_ratio=0
-                    ),
+                    retry_policy=RetryPolicy(max_attempts=2, initial_delay_ms=1, jitter_ratio=0),
                 )
             ],
             "outputs": [],

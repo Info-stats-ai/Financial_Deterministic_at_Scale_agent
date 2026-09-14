@@ -30,9 +30,7 @@ class CheckpointVerifier:
         self.page = page
         self.resolver = resolver
 
-    async def verify(
-        self, checkpoint: Checkpoint, values: dict[str, Any]
-    ) -> CheckpointResult:
+    async def verify(self, checkpoint: Checkpoint, values: dict[str, Any]) -> CheckpointResult:
         expected = render_template(checkpoint.expected, values)
         kind = CheckpointKind(checkpoint.kind)
         try:

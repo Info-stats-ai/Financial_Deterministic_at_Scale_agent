@@ -130,8 +130,7 @@ class PolicyGate:
             ]
         )
         text_is_risky = any(
-            re.search(pattern, searchable)
-            for pattern in self.config.actions.risky_text_patterns
+            re.search(pattern, searchable) for pattern in self.config.actions.risky_text_patterns
         )
         if risk in {RiskClass.RISKY, RiskClass.IRREVERSIBLE} or text_is_risky:
             return PolicyVerdict(
