@@ -1,0 +1,13 @@
+{
+  "case_id": "hitl-0071",
+  "expected_failure_code": "HANDOFF_NOT_RESUMED",
+  "expected_recovered": false,
+  "expected_status": "intervention_required",
+  "index": 71,
+  "member_id": "[REDACTED]",
+  "mode": "abandon",
+  "notes": "Clerk never takes control; handoff times out on the live session.",
+  "operator_password": "[REDACTED]",
+  "sample": true,
+  "wrong_password": "[REDACTED]"
+}

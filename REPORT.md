@@ -118,9 +118,11 @@ operator uses the headed Playwright window. Listeners log click/change without v
 After resume, replay re-verifies the postcondition; discovery re-observes with a fresh
 screenshot. Tests assert `BrowserContext` object identity.
 
-**Result / trade-off.** The transfer protocol is real; the UI is a mock. Production would
-add a worker lease, redacted remote view, and fencing tokens. In-memory ownership dies
-with the process.
+**Result / trade-off.** The transfer protocol is real; the operator UI is a mock.
+`evidence/eval/hitl-100/` tracks 100 failed-login escalations on a hermetic portal (70
+recovered on the same `BrowserContext`, 15 abandoned, 15 resumed with another bad
+password). Production would add a worker lease, redacted remote view, and fencing tokens.
+In-memory ownership dies with the process.
 
 # Safety
 

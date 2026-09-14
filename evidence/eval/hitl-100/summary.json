@@ -1,0 +1,17 @@
+{
+  "abandoned": 15,
+  "case_count": 100,
+  "failed_recovery": 15,
+  "matched_expected": 100,
+  "notes": [
+    "Hermetic HTML portal; short checkpoints. Does not hammer the live demo.",
+    "Failed login always escalates on the live BrowserContext.",
+    "recover: clerk types claims123 and replay finishes.",
+    "abandon: clerk never takes control; handoff times out.",
+    "fail_again: clerk resumes with another bad password; checkpoint fails."
+  ],
+  "passed": true,
+  "recovered": 70,
+  "same_session": 100,
+  "same_session_rate": 1.0
+}

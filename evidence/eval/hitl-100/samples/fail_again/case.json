@@ -1,0 +1,13 @@
+{
+  "case_id": "hitl-0086",
+  "expected_failure_code": "STEP_FAILED",
+  "expected_recovered": false,
+  "expected_status": "hard_failure",
+  "index": 86,
+  "member_id": "[REDACTED]",
+  "mode": "fail_again",
+  "notes": "Clerk resumes with another bad password; checkpoint still fails.",
+  "operator_password": "[REDACTED]",
+  "sample": true,
+  "wrong_password": "[REDACTED]"
+}

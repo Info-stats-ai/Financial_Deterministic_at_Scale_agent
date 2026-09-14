@@ -1,0 +1,17 @@
+{
+  "capability_id": "5fc5bf56-60b1-502f-87ec-26c74f30e58d",
+  "capability_version": "1.0.0",
+  "completed_steps": 6,
+  "duration_ms": 6693,
+  "failure": null,
+  "outcome_code": null,
+  "outcome_message": null,
+  "outputs": {
+    "insurance": "Acme",
+    "latest_claim": "CLM-1 Pending",
+    "patient_name": "Jane Doe",
+    "patient_status": "Active"
+  },
+  "run_id": "hitl-0001",
+  "status": "success"
+}

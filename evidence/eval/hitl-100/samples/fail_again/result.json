@@ -1,0 +1,21 @@
+{
+  "capability_id": "5fc5bf56-60b1-502f-87ec-26c74f30e58d",
+  "capability_version": "1.0.0",
+  "completed_steps": 2,
+  "duration_ms": 2474,
+  "failure": {
+    "code": "STEP_FAILED",
+    "evidence_paths": [
+      "evidence/eval/hitl-100/samples/hitl-0086/hitl-0086-step-2-step_failed.png"
+    ],
+    "expected": "Sign in to the synthetic claims portal",
+    "observed": "RuntimeError: expected Patients; observed TimeoutError: Locator.wait_for: Timeout 400ms exceeded.\nCall log:\n  - waiting for get_by_text(\"Patients\").first to be visible\n    9 \u00d7 locator resolved to hidden <h1>Patients</h1>\n",
+    "step_id": "sign-in",
+    "step_index": 2
+  },
+  "outcome_code": null,
+  "outcome_message": null,
+  "outputs": null,
+  "run_id": "hitl-0086",
+  "status": "hard_failure"
+}

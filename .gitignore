@@ -10,7 +10,17 @@ playwright-report/
 test-results/
 artifacts/runtime/
 evidence/runtime/
+evidence/eval/hitl-100/runs/
 *.har
+
+# Ad-hoc unlabeled replay dumps. Curated runs keep stable names.
+evidence/replay/replay-*
+!evidence/replay/replay-success/
+!evidence/replay/replay-success/**
+!evidence/replay/replay-not-found/
+!evidence/replay/replay-not-found/**
+!evidence/replay/replay-hard-failure/
+!evidence/replay/replay-hard-failure/**
 
 # Keep curated, redacted interview evidence.
 !evidence/fixtures/*.har

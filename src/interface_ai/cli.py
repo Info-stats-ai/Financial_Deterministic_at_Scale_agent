@@ -19,6 +19,8 @@ from interface_ai.catalog import CapabilityCatalog, CatalogError
 from interface_ai.core.session import SessionManager
 from interface_ai.discovery.anthropic_client import ClaudeComputerClient
 from interface_ai.discovery.loop import DiscoveryLoop, DiscoveryResult
+from interface_ai.eval.hitl_cases import build_hitl_cases
+from interface_ai.eval.hitl_pack import run_hitl_pack
 from interface_ai.eval.runner import EvaluationRunner, default_healthcare_scenarios
 from interface_ai.eval.score import EvalReport
 from interface_ai.evidence.recorder import EvidenceRecorder
@@ -479,6 +481,22 @@ def evaluate(
         ).write_json(report_path.name, report.model_dump(mode="json"))
     typer.echo(json.dumps(redactor.redact(report.model_dump(mode="json")), indent=2))
     if not report.passed:
+        raise typer.Exit(code=2)
+
+
+@app.command("evaluate-hitl")
+def evaluate_hitl(
+    out: Annotated[Path, typer.Option(help="Directory for the HITL ledger and samples")] = Path(
+        "evidence/eval/hitl-100"
+    ),
+    headless: Annotated[bool, typer.Option()] = True,
+) -> None:
+    """Track failed-login handoff on a hermetic portal. Does not call the live demo."""
+
+    cases = build_hitl_cases()
+    summary = asyncio.run(run_hitl_pack(cases, out_dir=out, headless=headless))
+    typer.echo(summary.model_dump_json(indent=2))
+    if not summary.passed:
         raise typer.Exit(code=2)
 
 

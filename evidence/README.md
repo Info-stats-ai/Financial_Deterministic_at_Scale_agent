@@ -3,28 +3,24 @@
 All values belong to CloudCruise's public synthetic automation demo. No real patient,
 institution, account, or credential data is present.
 
-## Curated files
+Read this directory as the brief's required pack: one discovery run, one reviewed
+artifact, and replay logs for success plus an exceptional state.
 
-- `artifacts/lookup_patient_recent_claims.v1.json` — reviewed, eval-promoted artifact
-  (`approved_for_unattended_replay: true`).
-- `eval/lookup_patient_recent_claims.eval.json` — 48 offline trials (8× happy path,
-  16× not-found, invalid MRN, bad password, off-allowlist). Composite 99.77, all
-  gates passed. Same-session human recovery is covered by `tests/test_eval_hitl.py`.
-- `eval/discovery-live.contract.json` — static score of the live draft (fails promotion).
-- `discovery/discovery-live/` — genuine Anthropic computer-use run (not a fake-model test).
-- `replay/replay-success/` — model-free successful replay with redacted typed outputs.
-- `replay/replay-not-found/` — expected `PATIENT_NOT_FOUND` business outcome, not a crash.
-- `replay/replay-hard-failure/` — bad public-demo password producing a hard failure with
-  expected/observed details and a masked screenshot.
-- `fixtures/cloudcruise-healthcare.har` — test-only network fixture for offline replay.
-  It contains the public demo's client bundle and synthetic fixture records.
+## Pack
 
-## Live discovery (`discovery/discovery-live/`)
+| Path | What it proves |
+|---|---|
+| `artifacts/lookup_patient_recent_claims.v1.json` | Reviewed golden artifact (`approved_for_unattended_replay: true`) |
+| `discovery/discovery-live/` | Genuine Anthropic computer-use run (not a fake-model test) |
+| `replay/replay-success/` | Model-free successful replay |
+| `replay/replay-not-found/` | `PATIENT_NOT_FOUND` business outcome, not a crash |
+| `replay/replay-hard-failure/` | Bad demo password → hard failure + masked screenshot |
+| `eval/lookup_patient_recent_claims.eval.json` | 48 offline trials, composite 99.77, all gates passed |
+| `eval/discovery-live.contract.json` | Static score of the live draft (fails promotion) |
+| `eval/hitl-100/` | 100 tracked same-session login escalations |
+| `fixtures/cloudcruise-healthcare.har` | Offline replay fixture (no live network) |
 
-This directory is the required genuine LLM run. `result.json` reports real model token
-usage (`input_tokens` / `output_tokens` > 0) and `events.jsonl` contains Anthropic
-computer-tool calls. Password keystrokes are `[REDACTED]` in JSON/JSONL. The live HAR has
-the public demo password string stripped; use the fixture HAR for offline replay.
+## Live discovery
 
 ```text
 evidence/discovery/discovery-live/
@@ -36,6 +32,14 @@ evidence/discovery/discovery-live/
   result.json
 ```
 
-`artifact.json` is a **draft** (`approved_for_unattended_replay: false`). It is not
-promoted because it has no business-outcome rule and uses brittle CSS. Unattended
-`capability invoke` uses the reviewed golden file under `artifacts/` after `evaluate --promote`.
+`result.json` reports real model token usage. Computer-tool calls are in `events.jsonl`.
+Password keystrokes are `[REDACTED]`. The live HAR has the public demo password stripped.
+
+`artifact.json` is a **draft** (`approved_for_unattended_replay: false`). Unattended
+`capability invoke` uses the golden file after `evaluate --promote`.
+
+## HITL pack
+
+Failed login always goes `automation → pending_human` on the **same** Playwright context.
+A simulated clerk then recovers, abandons, or resumes with another bad password.
+See [eval/hitl-100/README.md](eval/hitl-100/README.md).

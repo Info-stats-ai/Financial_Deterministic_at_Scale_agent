@@ -1,0 +1,13 @@
+{
+  "case_id": "hitl-0001",
+  "expected_failure_code": null,
+  "expected_recovered": true,
+  "expected_status": "success",
+  "index": 1,
+  "member_id": "[REDACTED]",
+  "mode": "recover",
+  "notes": "Failed login escalates; clerk types the real password on the same session.",
+  "operator_password": "[REDACTED]",
+  "sample": true,
+  "wrong_password": "[REDACTED]"
+}

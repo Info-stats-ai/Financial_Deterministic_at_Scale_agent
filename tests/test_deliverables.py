@@ -28,6 +28,7 @@ def test_readme_has_exact_discovery_replay_and_offline_commands() -> None:
     assert "uv run capability catalog" in readme
     assert "uv run capability invoke" in readme
     assert "uv run capability evaluate" in readme
+    assert "uv run capability evaluate-hitl" in readme
     assert "evidence/discovery/discovery-live/artifact.json" in readme
     assert "evidence/artifacts/lookup_patient_recent_claims.v1.json" in readme
     assert "--offline-har evidence/fixtures/cloudcruise-healthcare.har" in readme
@@ -86,6 +87,36 @@ def test_curated_artifact_and_replay_evidence_are_valid() -> None:
     )
     assert failure["failure"]["evidence_paths"]
     assert Path(failure["failure"]["evidence_paths"][0]).exists()
+
+
+def test_hitl_pack_evidence_is_complete() -> None:
+    root = Path("evidence/eval/hitl-100")
+    summary = json.loads((root / "summary.json").read_text())
+    ledger = [
+        json.loads(line)
+        for line in (root / "ledger.jsonl").read_text().splitlines()
+        if line.strip()
+    ]
+    cases = json.loads((root / "cases.json").read_text())
+    assert summary["passed"] is True
+    assert summary["case_count"] == 100
+    assert summary["recovered"] == 70
+    assert summary["abandoned"] == 15
+    assert summary["failed_recovery"] == 15
+    assert summary["same_session_rate"] == 1.0
+    assert len(ledger) == 100
+    assert len(cases) == 100
+    assert {item["mode"] for item in ledger} == {"recover", "abandon", "fail_again"}
+    for name in ("recover", "abandon", "fail_again"):
+        sample = root / "samples" / name
+        assert (sample / "events.jsonl").stat().st_size > 0
+        assert (sample / "result.json").stat().st_size > 0
+    recover = json.loads((root / "samples" / "recover" / "result.json").read_text())
+    abandon = json.loads((root / "samples" / "abandon" / "result.json").read_text())
+    failed = json.loads((root / "samples" / "fail_again" / "result.json").read_text())
+    assert recover["status"] == "success"
+    assert abandon["status"] == "intervention_required"
+    assert failed["status"] == "hard_failure"
 
 
 def test_replay_package_has_no_anthropic_dependency() -> None:

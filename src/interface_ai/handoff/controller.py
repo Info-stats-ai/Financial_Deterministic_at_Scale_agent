@@ -24,11 +24,13 @@ class HandoffController:
         session: SessionManager,
         evidence: EvidenceRecorder,
         *,
-        timeout_seconds: int = 600,
+        timeout_seconds: float = 600,
+        capture_screenshot: bool = True,
     ) -> None:
         self.session = session
         self.evidence = evidence
         self.timeout_seconds = timeout_seconds
+        self.capture_screenshot = capture_screenshot
         self._server: uvicorn.Server | None = None
         self._server_task: asyncio.Task[None] | None = None
 
@@ -64,7 +66,10 @@ class HandoffController:
     ) -> HandoffResolution:
         await self.session.install_human_action_capture()
         screenshot = Path(self.evidence.run_dir) / (f"intervention-{uuid4().hex[:8]}.png")
-        await self.session.surface.snapshot(screenshot)
+        screenshot_path = ""
+        if self.capture_screenshot:
+            await self.session.surface.snapshot(screenshot)
+            screenshot_path = str(screenshot)
         request = InterventionRequest(
             intervention_id=f"int-{uuid4().hex[:12]}",
             run_id=run_id,
@@ -73,7 +78,7 @@ class HandoffController:
             goal_or_capability=goal_or_capability,
             current_step=current_step,
             current_url=self.session.surface._require_page().url,
-            screenshot_path=str(screenshot),
+            screenshot_path=screenshot_path,
             expected_state=expected_state,
             observed_state=observed_state,
         )

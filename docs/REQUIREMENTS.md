@@ -35,8 +35,9 @@ automated verification, and demonstration evidence are all present.
 | Offline/no-live-services path | HAR-backed demo mode | offline integration test | README command | Complete |
 | README exact setup/demo commands | `/README.md` | command smoke test | repository root | Complete |
 | REPORT exact seven headings | `/REPORT.md` | heading validation test | repository root | Complete |
-| Agent-facing catalog + invoke | `catalog.py` + CLI | catalog tests | README Demo 7 | Complete |
+| Agent-facing catalog + invoke | `catalog.py` + CLI | catalog tests | README catalog section | Complete |
 | Reliability eval + approval gate | `eval/` + `capability evaluate` | `test_eval.py` | `/evidence/eval/` | Complete |
+| 100 tracked HITL login escalations | `eval/hitl_pack.py` | `test_hitl_pack.py` | `/evidence/eval/hitl-100/` | Complete |
 | Public GitHub repository | configured `origin` | remote and clean-tree checks | public URL | Pushed |
 
 ## Explicit acceptance gates

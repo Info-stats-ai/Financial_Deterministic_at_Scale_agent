@@ -1,0 +1,21 @@
+{
+  "capability_id": "5fc5bf56-60b1-502f-87ec-26c74f30e58d",
+  "capability_version": "1.0.0",
+  "completed_steps": 2,
+  "duration_ms": 2980,
+  "failure": {
+    "code": "HANDOFF_NOT_RESUMED",
+    "evidence_paths": [
+      "evidence/eval/hitl-100/samples/hitl-0071/hitl-0071-step-2-handoff_not_resumed.png"
+    ],
+    "expected": "human recovery and resume",
+    "observed": "human intervention timed out",
+    "step_id": "sign-in",
+    "step_index": 2
+  },
+  "outcome_code": null,
+  "outcome_message": null,
+  "outputs": null,
+  "run_id": "hitl-0071",
+  "status": "intervention_required"
+}
