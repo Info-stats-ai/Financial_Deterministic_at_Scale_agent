@@ -12,11 +12,11 @@ automated verification, and demonstration evidence are all present.
 | Ordered actions + locator reasoning | `CapabilityStep`, `LocatorStrategy` | schema and resolver tests | saved artifact JSON | Implemented; replay pending |
 | Typed inputs and outputs | `ParameterSpec`, `OutputSpec` | schema tests | artifact + result | Implemented; evidence pending |
 | Per-step and final checkpoints | `Checkpoint` + replay verifier | replay tests | replay result | Schema done; replay pending |
-| Deterministic replay without LLM | `replay/engine.py` | golden replay test | success replay JSONL | Planned |
-| Stable targeting and fallbacks | `replay/locator_resolver.py` | uniqueness/cascade tests | selected-tier events | Planned |
-| Validation/runtime error handling | `replay/outcomes.py` | scenario tests | error replay | Planned |
-| Business outcome vs recoverable vs hard failure | result and outcome contracts | taxonomy tests | three replay results | Planned |
-| Structured success/failure result | `ReplayResult` | contract tests | `result.json` | Planned |
+| Deterministic replay without LLM | `replay/engine.py` | golden replay test | success replay JSONL | Implemented; evidence pending |
+| Stable targeting and fallbacks | `replay/locator_resolver.py` | uniqueness/cascade tests | selected-tier events | Implemented; evidence pending |
+| Validation/runtime error handling | `replay/outcomes.py` | scenario tests | error replay | Implemented; evidence pending |
+| Business outcome vs recoverable vs hard failure | result and outcome contracts | taxonomy tests | three replay results | Implemented; evidence pending |
+| Structured success/failure result | `ReplayResult` | contract tests | `result.json` | Implemented; evidence pending |
 | Domain/route/action allowlist | `safety/policy.py` + `config/policy.yaml` | policy tests | policy events | Configured; enforcement pending |
 | Safe/reversible/risky/irreversible classes | artifact + policy gate | policy tests | risky-step handoff | Schema done; enforcement pending |
 | No persisted secrets or raw PII | credential references + redaction writer | redaction tests + repository scan | redacted logs/shots | Partially implemented |

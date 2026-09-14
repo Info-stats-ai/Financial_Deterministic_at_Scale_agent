@@ -172,11 +172,15 @@ class ObservationRule(StrictModel):
     when: Checkpoint
     recovery: RecoveryAction
     retry_policy: RetryPolicy | None = None
+    recovery_locator: LocatorStrategy | None = None
+    wait_ms: int = Field(default=500, ge=0, le=30_000)
 
     @model_validator(mode="after")
     def recoverable_rules_have_retry_policy(self) -> Self:
         if self.classification == OutcomeClass.RECOVERABLE and self.retry_policy is None:
             raise ValueError("recoverable rules require a retry_policy")
+        if self.recovery == RecoveryAction.DISMISS and self.recovery_locator is None:
+            raise ValueError("dismiss recovery requires a recovery_locator")
         return self
 
 

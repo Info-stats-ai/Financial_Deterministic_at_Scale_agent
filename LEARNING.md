@@ -191,3 +191,106 @@ content-addressed references through the system.
 
 Dependency inversion, ports and adapters, multimodal perception, session ownership,
 content-addressed state fingerprints, resource bounding, and interface segregation.
+
+## Phase 4 — Deterministic replay
+
+### Challenge
+
+Recorded clicks are not deterministic. Elements can be duplicated, rendering can be slow,
+and an action can return without producing the intended state. Replay must make no model
+decision yet still degrade through known target strategies and explain exactly where it
+stopped.
+
+### Options considered
+
+1. Generate and execute a Playwright script.
+2. Replay recorded coordinates and fixed delays.
+3. Interpret the artifact with a bounded state machine.
+
+### Decision and reasons
+
+Use an interpreter. For each step it validates preconditions, walks locators by rank,
+requires exactly one match, performs the declared action, waits on explicit conditions,
+and validates postconditions. It checks a final success checkpoint before extracting typed
+outputs. The replay package does not import the Anthropic client.
+
+### Implementation
+
+- Input parameters are checked for missing/unknown names, runtime type, and regex pattern.
+- Locator resolution supports role/name, label, text, CSS, XPath, frame hints, and
+  normalized coordinates as last resort.
+- Ambiguous candidates do not cause an arbitrary click; the resolver continues to the next
+  strategy and fails with every attempted tier if none is unique.
+- Retry count is bounded. Backoff and seeded timing jitter avoid synchronized retries while
+  preserving a predictable decision path.
+- Every failure includes step ID/index, expected state, observed state, and screenshot path.
+- Output extraction converts declared string, integer, number, money, date, and boolean
+  values only after the overall checkpoint passes.
+- Chromium integration tests prove successful replay and ranked fallback.
+
+### Trade-off and bottleneck
+
+An interpreter is more code than a generated script, but centralizes semantics and policy.
+Web locator resolution currently belongs to the web runtime; a desktop runtime will need
+its own resolver. Coordinate fallback cannot verify semantic state by itself and should
+lower confidence.
+
+### Scale path
+
+Replay workers need no GPU or model quota. They can autoscale on queue depth and be pooled
+by vendor application. Store each step transition as an append-only event, use invocation
+idempotency keys, cap concurrency per tenant, and apply circuit breakers when a vendor
+application is unhealthy.
+
+### Concepts learned
+
+Interpreter pattern, finite-state execution, idempotency, condition-based waits, exponential
+backoff, jitter, circuit breakers, unique-match invariants, and typed result contracts.
+
+## Phase 5 — Runtime outcome taxonomy
+
+### Challenge
+
+An expected “patient not found” answer, a temporarily unavailable service, and a broken
+locator are operationally different. Returning all three as exceptions makes upstream
+agents retry business answers and hides recoverable incidents.
+
+### Options considered
+
+1. Return success or exception only.
+2. Infer error meaning from arbitrary page text at runtime.
+3. Declare known observation rules and recovery behavior in the artifact.
+
+### Decision and reasons
+
+Use explicit artifact rules. Each rule names a stable code, deterministic checkpoint,
+classification, and recovery action. The engine never guesses whether text is a business
+outcome. Results distinguish `success`, `business_outcome`, `recoverable_exhausted`,
+`hard_failure`, and `intervention_required`.
+
+### Implementation
+
+- Business outcomes stop cleanly with a code and message, without a failure object.
+- Recoverable states have their own bounded retry policy and may wait, retry, dismiss a
+  known element, request reauthentication, or escalate.
+- Exhausted recovery returns `recoverable_exhausted`, not a hard failure.
+- Undeclared exceptions, locator exhaustion, and checkpoint mismatch are hard failures.
+- Tests prove that no-result and exhausted-transient states have different contracts and
+  that a richer failure screenshot is captured.
+
+### Trade-off and bottleneck
+
+Known states must be modeled per vendor product. That is intentional: guessing semantics
+with an LLM during replay would violate determinism. Unknown states escalate with evidence
+and can become reviewed rules in the next artifact version.
+
+### Scale path
+
+Maintain a vendor-level outcome-rule library inherited by tenant artifacts. Aggregate
+outcome codes and recovery exhaustion rates. Promote frequently observed unknown states
+through review, canary the new artifact version, and roll back by immutable version hash.
+
+### Concepts learned
+
+Algebraic result types, domain errors versus technical failures, bounded recovery,
+dead-letter handling, canary releases, and closed-loop artifact improvement.
