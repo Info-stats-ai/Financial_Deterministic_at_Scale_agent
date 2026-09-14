@@ -69,14 +69,27 @@ evidence/discovery/discovery-live/
   result.json
 ```
 
-The repository must not claim completion of this requirement unless that directory contains
-real Anthropic token usage and computer-tool calls. A fake-model integration test exists
-only for repeatable CI.
+That directory is committed with real Anthropic token usage, computer-tool calls, a masked
+`final.png`, and a redacted HAR. A fake-model integration test exists only for repeatable
+CI and is not a substitute for this evidence.
 
-## Demo 2: deterministic replay
+## Demo 2: replay the resulting (draft) artifact
 
-Replay a reviewed artifact against the live demo. There is no Anthropic import or model
-call in the replay decision path.
+This is the brief's demo path: run the agent, then replay **the file it just wrote**. The
+compile is a draft — locators are weaker than the reviewed golden — so treat a flake here
+as a review signal, not as the production contract.
+
+```bash
+uv run capability replay \
+  --artifact evidence/discovery/discovery-live/artifact.json \
+  --param member_id=MRN-10042 \
+  --evidence-label draft-replay
+```
+
+## Demo 3: replay the reviewed golden artifact
+
+Production-style replay uses the human-reviewed artifact. There is no Anthropic import or
+model call in the replay decision path.
 
 ```bash
 uv run capability replay \
@@ -88,7 +101,7 @@ uv run capability replay \
 Expected status: `success`, six completed steps, and typed outputs. Sensitive output values
 are returned internally but redacted from persisted logs and terminal evidence.
 
-## Demo 3: business outcome, not a crash
+## Demo 4: business outcome, not a crash
 
 ```bash
 uv run capability replay \
@@ -107,7 +120,7 @@ Expected result:
 }
 ```
 
-## Demo 4: run without live services or an API key
+## Demo 5: run without live services or an API key
 
 The committed HAR serves recorded frontend responses and aborts every unrecorded network
 request. It does not silently fall back to the internet.
@@ -122,7 +135,7 @@ uv run capability replay \
 
 No `ANTHROPIC_API_KEY` is needed. The public demo credentials remain in `.env`.
 
-## Demo 5: agent-facing capability catalog
+## Demo 6: agent-facing capability catalog
 
 An upstream agent should not open a JSON file. It should discover a named tool with a
 typed input schema, then invoke it.
@@ -139,7 +152,7 @@ uv run capability invoke \
 `catalog` prints the tool/function-calling contract. `invoke` is a thin wrapper over
 deterministic replay, so production callers never enter the discovery loop.
 
-## Demo 6: same-session human handoff
+## Demo 7: same-session human handoff
 
 Start with a deliberately wrong synthetic password:
 
@@ -218,6 +231,6 @@ src/interface_ai/
   handoff/      intervention contracts, controller, operator console
   evidence/     append-only structured recorder
 config/         versioned execution policy
-evidence/       reviewed artifact, replay runs, masked failure, offline HAR
+evidence/       live discovery, reviewed artifact, replay runs, masked failure, offline HAR
 tests/          unit and browser integration coverage
 ```

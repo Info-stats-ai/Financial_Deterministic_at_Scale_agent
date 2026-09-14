@@ -27,8 +27,32 @@ def test_readme_has_exact_discovery_replay_and_offline_commands() -> None:
     assert "uv run capability replay" in readme
     assert "uv run capability catalog" in readme
     assert "uv run capability invoke" in readme
+    assert "evidence/discovery/discovery-live/artifact.json" in readme
+    assert "evidence/artifacts/lookup_patient_recent_claims.v1.json" in readme
     assert "--offline-har evidence/fixtures/cloudcruise-healthcare.har" in readme
     assert "--operator-port 8787" in readme
+
+
+def test_live_discovery_evidence_is_genuine() -> None:
+    run_dir = Path("evidence/discovery/discovery-live")
+    result = json.loads((run_dir / "result.json").read_text())
+    events = (run_dir / "events.jsonl").read_text()
+
+    assert result["status"] == "success"
+    assert result["input_tokens"] > 0
+    assert result["output_tokens"] > 0
+    assert result["computer_actions"] > 0
+    assert "toolset_name" in events
+    assert (run_dir / "final.png").stat().st_size > 0
+    assert (run_dir / "artifact.json").stat().st_size > 0
+    assert (run_dir / "network.har").stat().st_size > 0
+    assert "sk-ant-" not in events
+    assert "claims123" not in events
+    assert "claims123" not in (run_dir / "network.har").read_text()
+
+    artifact = load_artifact(run_dir / "artifact.json")
+    assert artifact.verify_content_hash()
+    assert artifact.metadata.approved_for_unattended_replay is False
 
 
 def test_curated_artifact_and_replay_evidence_are_valid() -> None:
@@ -62,19 +86,19 @@ def test_replay_package_has_no_anthropic_dependency() -> None:
 
 def test_no_private_anthropic_key_is_committed() -> None:
     private_key = re.compile(r"sk-ant-[A-Za-z0-9_-]{20,}")
+    skipped_names = {".env", ".env.local"}
+    skipped_parts = {
+        ".git",
+        ".venv",
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+    }
     for path in Path(".").rglob("*"):
         if (
             not path.is_file()
-            or any(
-                cache in path.parts
-                for cache in {
-                    ".git",
-                    ".venv",
-                    ".mypy_cache",
-                    ".pytest_cache",
-                    ".ruff_cache",
-                }
-            )
+            or path.name in skipped_names
+            or any(cache in path.parts for cache in skipped_parts)
             or path.suffix in {".png", ".har", ".pyc"}
         ):
             continue

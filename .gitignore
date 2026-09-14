@@ -14,3 +14,4 @@ evidence/runtime/
 
 # Keep curated, redacted interview evidence.
 !evidence/fixtures/*.har
+!evidence/discovery/**/*.har

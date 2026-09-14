@@ -1,0 +1,240 @@
+[
+  {
+    "box": {
+      "height": 28,
+      "width": 1280,
+      "x": 80,
+      "y": 16
+    },
+    "disabled": false,
+    "frame_depth": 0,
+    "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+    "name": "CLOUDCRUISE UNITED",
+    "role": null,
+    "tag": "h1",
+    "text": "CLOUDCRUISE UNITED",
+    "type": null,
+    "value_state": null
+  },
+  {
+    "box": {
+      "height": 45,
+      "width": 259,
+      "x": 0,
+      "y": 135
+    },
+    "disabled": false,
+    "frame_depth": 0,
+    "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+    "name": "Patient Summary",
+    "role": null,
+    "tag": "button",
+    "text": "Patient Summary\n\u25bc",
+    "type": null,
+    "value_state": "empty"
+  },
+  {
+    "box": {
+      "height": 45,
+      "width": 259,
+      "x": 0,
+      "y": 275
+    },
+    "disabled": false,
+    "frame_depth": 0,
+    "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+    "name": "Recent Claims",
+    "role": null,
+    "tag": "button",
+    "text": "Recent Claims\n\u25bc",
+    "type": null,
+    "value_state": "empty"
+  },
+  {
+    "box": {
+      "height": 45,
+      "width": 259,
+      "x": 0,
+      "y": 422.5
+    },
+    "disabled": false,
+    "frame_depth": 0,
+    "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+    "name": "Documents",
+    "role": null,
+    "tag": "button",
+    "text": "Documents\n\u25bc",
+    "type": null,
+    "value_state": "empty"
+  },
+  {
+    "box": {
+      "height": 45,
+      "width": 259,
+      "x": 0,
+      "y": 468.5
+    },
+    "disabled": false,
+    "frame_depth": 0,
+    "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+    "name": "Notes",
+    "role": null,
+    "tag": "button",
+    "text": "Notes\n\u25bc",
+    "type": null,
+    "value_state": "empty"
+  },
+  {
+    "box": {
+      "height": 45,
+      "width": 259,
+      "x": 0,
+      "y": 514.5
+    },
+    "disabled": false,
+    "frame_depth": 0,
+    "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+    "name": "Alerts",
+    "role": null,
+    "tag": "button",
+    "text": "Alerts\n\u25bc",
+    "type": null,
+    "value_state": "empty"
+  },
+  {
+    "box": {
+      "height": 39,
+      "width": 320,
+      "x": 284,
+      "y": 66
+    },
+    "disabled": false,
+    "frame_depth": 0,
+    "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+    "name": "Search patients",
+    "role": null,
+    "tag": "input",
+    "text": null,
+    "type": "text",
+    "value_state": "set"
+  },
+  {
+    "box": {
+      "height": 24,
+      "width": 16,
+      "x": 1316.7578125,
+      "y": 73.5
+    },
+    "disabled": false,
+    "frame_depth": 0,
+    "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+    "name": "Notifications",
+    "role": null,
+    "tag": "button",
+    "text": "\ud83d\udd14",
+    "type": null,
+    "value_state": "empty"
+  },
+  {
+    "box": {
+      "height": 33,
+      "width": 84.2890625,
+      "x": 284,
+      "y": 140
+    },
+    "disabled": false,
+    "frame_depth": 0,
+    "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+    "name": "Patients",
+    "role": null,
+    "tag": "h1",
+    "text": "Patients",
+    "type": null,
+    "value_state": null
+  },
+  {
+    "box": {
+      "height": 41,
+      "width": 124.1953125,
+      "x": 1291.8046875,
+      "y": 136
+    },
+    "disabled": false,
+    "frame_depth": 0,
+    "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+    "name": "New claim",
+    "role": null,
+    "tag": "button",
+    "text": "+ New Claim",
+    "type": null,
+    "value_state": "empty"
+  },
+  {
+    "box": {
+      "height": 86,
+      "width": 1130,
+      "x": 285,
+      "y": 194
+    },
+    "disabled": false,
+    "frame_depth": 0,
+    "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+    "name": "ACTIONS\tINSURANCE\tPATIENT NAME\tSTATUS\tDOB\tMRN\n\nSelect\nHistory\n\tBlue Cross\tJohn Smith\tActive\t1985-03-14\t[REDACTED]",
+    "role": null,
+    "tag": "table",
+    "text": "ACTIONS\tINSURANCE\tPATIENT NAME\tSTATUS\tDOB\tMRN\n\nSelect\nHistory\n\tBlue Cross\tJohn Smith\tActive\t1985-03-14\t[REDACTED]",
+    "type": null,
+    "value_state": null
+  },
+  {
+    "box": {
+      "height": 26,
+      "width": 55.5859375,
+      "x": 299,
+      "y": 243
+    },
+    "disabled": false,
+    "frame_depth": 0,
+    "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+    "name": "Select John Smith",
+    "role": null,
+    "tag": "button",
+    "text": "Select",
+    "type": null,
+    "value_state": "empty"
+  },
+  {
+    "box": {
+      "height": 26,
+      "width": 60.6015625,
+      "x": 358.5859375,
+      "y": 243
+    },
+    "disabled": false,
+    "frame_depth": 0,
+    "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+    "name": "View history for John Smith",
+    "role": null,
+    "tag": "button",
+    "text": "History",
+    "type": null,
+    "value_state": "empty"
+  },
+  {
+    "box": {
+      "height": 1,
+      "width": 1,
+      "x": -1,
+      "y": -1
+    },
+    "disabled": false,
+    "frame_depth": 0,
+    "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+    "name": null,
+    "role": "alert",
+    "tag": "p",
+    "text": null,
+    "type": null,
+    "value_state": null
+  }
+]

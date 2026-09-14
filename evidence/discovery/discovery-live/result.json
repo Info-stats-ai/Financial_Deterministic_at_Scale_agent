@@ -1,0 +1,908 @@
+{
+  "actions": [
+    {
+      "result": "OK",
+      "sequence": 1,
+      "state_after": "5ef8f90fdd75289673afc27b2b256f027335096688e36078952684a4df4a9e13",
+      "state_before": "5ef8f90fdd75289673afc27b2b256f027335096688e36078952684a4df4a9e13",
+      "success": true,
+      "target": {
+        "accessible_name": "Provider ID",
+        "bounding_box": {
+          "height": 43.0,
+          "width": 336.0,
+          "x": 552.0,
+          "y": 482.75
+        },
+        "classes": [],
+        "css_path": "input#hc-[REDACTED]-id",
+        "element_id": "hc-[REDACTED]-id",
+        "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+        "label": null,
+        "role": null,
+        "tag": "input",
+        "text": null,
+        "xpath": "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/form[1]/input[1]"
+      },
+      "tool_input": {
+        "coordinate": [
+          719,
+          504
+        ]
+      },
+      "tool_name": "left_click",
+      "url_after": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+      "url_before": "https://demo.cloudcruise.com/xpath-cascade-healthcare"
+    },
+    {
+      "result": "OK",
+      "sequence": 2,
+      "state_after": "7cd4d0e703054e21d8dcf8cf0cef45e77360e3a3b035b3e2229b0202a949f9da",
+      "state_before": "5ef8f90fdd75289673afc27b2b256f027335096688e36078952684a4df4a9e13",
+      "success": true,
+      "target": {
+        "accessible_name": "Provider ID",
+        "bounding_box": {
+          "height": 43.0,
+          "width": 336.0,
+          "x": 552.0,
+          "y": 482.75
+        },
+        "classes": [],
+        "css_path": "input#hc-[REDACTED]-id",
+        "element_id": "hc-[REDACTED]-id",
+        "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+        "label": null,
+        "role": null,
+        "tag": "input",
+        "text": null,
+        "xpath": "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/form[1]/input[1]"
+      },
+      "tool_input": {
+        "text": "[REDACTED]"
+      },
+      "tool_name": "type",
+      "url_after": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+      "url_before": "https://demo.cloudcruise.com/xpath-cascade-healthcare"
+    },
+    {
+      "result": "OK",
+      "sequence": 3,
+      "state_after": "7cd4d0e703054e21d8dcf8cf0cef45e77360e3a3b035b3e2229b0202a949f9da",
+      "state_before": "7cd4d0e703054e21d8dcf8cf0cef45e77360e3a3b035b3e2229b0202a949f9da",
+      "success": true,
+      "target": {
+        "accessible_name": "Password",
+        "bounding_box": {
+          "height": 43.0,
+          "width": 336.0,
+          "x": 552.0,
+          "y": 565.25
+        },
+        "classes": [],
+        "css_path": "input#hc-password",
+        "element_id": "hc-password",
+        "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+        "label": null,
+        "role": null,
+        "tag": "input",
+        "text": null,
+        "xpath": "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/form[1]/input[2]"
+      },
+      "tool_input": {
+        "coordinate": [
+          719,
+          587
+        ]
+      },
+      "tool_name": "left_click",
+      "url_after": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+      "url_before": "https://demo.cloudcruise.com/xpath-cascade-healthcare"
+    },
+    {
+      "result": "OK",
+      "sequence": 4,
+      "state_after": "4cec7ce04872abd4ed2e323309ef771cef8a949d0b90e3c2c6822c3e7ad08ee8",
+      "state_before": "7cd4d0e703054e21d8dcf8cf0cef45e77360e3a3b035b3e2229b0202a949f9da",
+      "success": true,
+      "target": {
+        "accessible_name": "Password",
+        "bounding_box": {
+          "height": 43.0,
+          "width": 336.0,
+          "x": 552.0,
+          "y": 565.25
+        },
+        "classes": [],
+        "css_path": "input#hc-password",
+        "element_id": "hc-password",
+        "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+        "label": null,
+        "role": null,
+        "tag": "input",
+        "text": null,
+        "xpath": "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/form[1]/input[2]"
+      },
+      "tool_input": {
+        "text": "[REDACTED]"
+      },
+      "tool_name": "type",
+      "url_after": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+      "url_before": "https://demo.cloudcruise.com/xpath-cascade-healthcare"
+    },
+    {
+      "result": "OK",
+      "sequence": 5,
+      "state_after": "c3e30caebfe8094ae32931d0f903455acb8162ab67ada8830531477f03bb6018",
+      "state_before": "4cec7ce04872abd4ed2e323309ef771cef8a949d0b90e3c2c6822c3e7ad08ee8",
+      "success": true,
+      "target": {
+        "accessible_name": "Sign in",
+        "bounding_box": {
+          "height": 41.0,
+          "width": 336.0,
+          "x": 552.0,
+          "y": 628.25
+        },
+        "classes": [],
+        "css_path": "button#hc-login-submit",
+        "element_id": "hc-login-submit",
+        "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+        "label": null,
+        "role": null,
+        "tag": "button",
+        "text": "Sign In",
+        "xpath": "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/form[1]/button[1]"
+      },
+      "tool_input": {
+        "coordinate": [
+          719,
+          648
+        ]
+      },
+      "tool_name": "left_click",
+      "url_after": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+      "url_before": "https://demo.cloudcruise.com/xpath-cascade-healthcare"
+    },
+    {
+      "result": "OK",
+      "sequence": 7,
+      "state_after": "c3e30caebfe8094ae32931d0f903455acb8162ab67ada8830531477f03bb6018",
+      "state_before": "c3e30caebfe8094ae32931d0f903455acb8162ab67ada8830531477f03bb6018",
+      "success": true,
+      "target": {
+        "accessible_name": "Search patients",
+        "bounding_box": {
+          "height": 39.0,
+          "width": 320.0,
+          "x": 284.0,
+          "y": 66.0
+        },
+        "classes": [],
+        "css_path": "input#patient-search-input",
+        "element_id": "patient-search-input",
+        "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+        "label": null,
+        "role": null,
+        "tag": "input",
+        "text": null,
+        "xpath": "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/header[1]/div[1]/input[1]"
+      },
+      "tool_input": {
+        "coordinate": [
+          443,
+          85
+        ]
+      },
+      "tool_name": "left_click",
+      "url_after": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+      "url_before": "https://demo.cloudcruise.com/xpath-cascade-healthcare"
+    },
+    {
+      "result": "OK",
+      "sequence": 8,
+      "state_after": "935a6b414d628f42c23b869ccb730be61e886fcbfd947a4cfa8911b548bd926e",
+      "state_before": "c3e30caebfe8094ae32931d0f903455acb8162ab67ada8830531477f03bb6018",
+      "success": true,
+      "target": {
+        "accessible_name": "Search patients",
+        "bounding_box": {
+          "height": 39.0,
+          "width": 320.0,
+          "x": 284.0,
+          "y": 66.0
+        },
+        "classes": [],
+        "css_path": "input#patient-search-input",
+        "element_id": "patient-search-input",
+        "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+        "label": null,
+        "role": null,
+        "tag": "input",
+        "text": null,
+        "xpath": "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/header[1]/div[1]/input[1]"
+      },
+      "tool_input": {
+        "text": "[REDACTED]"
+      },
+      "tool_name": "type",
+      "url_after": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+      "url_before": "https://demo.cloudcruise.com/xpath-cascade-healthcare"
+    },
+    {
+      "result": "OK",
+      "sequence": 10,
+      "state_after": "0e141f46129b9183b84805c96fe0f722ab6acc52c7329fde78b8438d9a321b72",
+      "state_before": "935a6b414d628f42c23b869ccb730be61e886fcbfd947a4cfa8911b548bd926e",
+      "success": true,
+      "target": {
+        "accessible_name": "Select John Smith",
+        "bounding_box": {
+          "height": 26.0,
+          "width": 55.5859375,
+          "x": 299.0,
+          "y": 235.0
+        },
+        "classes": [],
+        "css_path": "table > tbody > tr > td:nth-of-type(1) > div > button:nth-of-type(1)",
+        "element_id": null,
+        "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+        "label": null,
+        "role": null,
+        "tag": "button",
+        "text": "Select",
+        "xpath": "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/main[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/button[1]"
+      },
+      "tool_input": {
+        "coordinate": [
+          326,
+          248
+        ]
+      },
+      "tool_name": "left_click",
+      "url_after": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+      "url_before": "https://demo.cloudcruise.com/xpath-cascade-healthcare"
+    },
+    {
+      "result": "OK",
+      "sequence": 11,
+      "state_after": "0e141f46129b9183b84805c96fe0f722ab6acc52c7329fde78b8438d9a321b72",
+      "state_before": "0e141f46129b9183b84805c96fe0f722ab6acc52c7329fde78b8438d9a321b72",
+      "success": true,
+      "target": null,
+      "tool_input": {
+        "duration": 1
+      },
+      "tool_name": "wait",
+      "url_after": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+      "url_before": "https://demo.cloudcruise.com/xpath-cascade-healthcare"
+    },
+    {
+      "result": "OK",
+      "sequence": 13,
+      "state_after": "84eb60ce28aaa0557f66d8cc1796b76e572c1e11f14f3a3d5b22e4184efc18aa",
+      "state_before": "67c6379cb80be750776f224a6335a614d6b7366f940bbad81bfcf162d3871fc6",
+      "success": true,
+      "target": {
+        "accessible_name": "Recent Claims",
+        "bounding_box": {
+          "height": 45.0,
+          "width": 259.0,
+          "x": 0.0,
+          "y": 275.0
+        },
+        "classes": [],
+        "css_path": "div > div > aside > div:nth-of-type(2) > div:nth-of-type(2) > button",
+        "element_id": null,
+        "frame_url": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+        "label": null,
+        "role": null,
+        "tag": "button",
+        "text": "Recent Claims\n\u25bc",
+        "xpath": "/html[1]/body[1]/div[1]/div[1]/div[1]/aside[1]/div[2]/div[2]/button[1]"
+      },
+      "tool_input": {
+        "coordinate": [
+          129,
+          298
+        ]
+      },
+      "tool_name": "left_click",
+      "url_after": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+      "url_before": "https://demo.cloudcruise.com/xpath-cascade-healthcare"
+    },
+    {
+      "result": "OK",
+      "sequence": 14,
+      "state_after": "84eb60ce28aaa0557f66d8cc1796b76e572c1e11f14f3a3d5b22e4184efc18aa",
+      "state_before": "84eb60ce28aaa0557f66d8cc1796b76e572c1e11f14f3a3d5b22e4184efc18aa",
+      "success": true,
+      "target": null,
+      "tool_input": {
+        "duration": 1
+      },
+      "tool_name": "wait",
+      "url_after": "https://demo.cloudcruise.com/xpath-cascade-healthcare",
+      "url_before": "https://demo.cloudcruise.com/xpath-cascade-healthcare"
+    }
+  ],
+  "artifact": {
+    "capability_id": "eb357f6c-aee1-532d-a930-f9cc8610b61f",
+    "capability_version": "1.0.0",
+    "content_hash": "sha256:103cd5ecc1a5ab8275968a60d5f712908c1c55105d4b5ad50658ffa98ed73869",
+    "credential_references": [
+      {
+        "name": "DEMO_USERNAME",
+        "purpose": "Runtime credential for demo username"
+      },
+      {
+        "name": "DEMO_PASSWORD",
+        "purpose": "Runtime credential for demo password"
+      }
+    ],
+    "description": "Log in to the synthetic claims portal. Search for member [REDACTED], select the matching patient, expand Recent Claims, and return outputs named patient_status and latest_claim. Do not open or submit a new claim.",
+    "input_parameters": [
+      {
+        "default": null,
+        "description": "Caller-supplied member id",
+        "examples": [],
+        "name": "member_id",
+        "pattern": null,
+        "required": true,
+        "sensitive": true,
+        "type": "string"
+      }
+    ],
+    "metadata": {
+      "approved_for_unattended_replay": false,
+      "recorded_at": "2026-09-14T07:37:04.999715Z",
+      "recorded_by": "llm_discovery",
+      "source_run_id": "discovery-live",
+      "tags": [
+        "live-discovery",
+        "public-demo",
+        "read-only"
+      ]
+    },
+    "name": "lookup_patient_claims",
+    "outputs": [
+      {
+        "description": "Value of patient status visible after success",
+        "extraction": {
+          "attribute": "text_content",
+          "locators": [
+            {
+              "anchor_text": null,
+              "coordinates": null,
+              "frame_path": [],
+              "kind": "css",
+              "name": null,
+              "rank": 1,
+              "reasoning": "Captured structural path; weaker than semantics and expected to drift",
+              "role": null,
+              "value": "div:nth-of-type(2) > table > tbody > tr > td:nth-of-type(4) > span"
+            },
+            {
+              "anchor_text": null,
+              "coordinates": null,
+              "frame_path": [],
+              "kind": "xpath",
+              "name": null,
+              "rank": 2,
+              "reasoning": "Absolute structural fallback for non-semantic legacy markup",
+              "role": null,
+              "value": "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/main[1]/div[2]/table[1]/tbody[1]/tr[1]/td[4]/span[1]"
+            }
+          ],
+          "transform": null
+        },
+        "name": "patient_status",
+        "required": true,
+        "sensitive": false,
+        "type": "string"
+      },
+      {
+        "description": "Value of latest claim visible after success",
+        "extraction": {
+          "attribute": "text_content",
+          "locators": [
+            {
+              "anchor_text": null,
+              "coordinates": null,
+              "frame_path": [],
+              "kind": "css",
+              "name": null,
+              "rank": 1,
+              "reasoning": "Captured structural path; weaker than semantics and expected to drift",
+              "role": null,
+              "value": "aside > div:nth-of-type(2) > div:nth-of-type(2) > div > div > div:nth-of-type(1)"
+            },
+            {
+              "anchor_text": null,
+              "coordinates": null,
+              "frame_path": [],
+              "kind": "xpath",
+              "name": null,
+              "rank": 2,
+              "reasoning": "Absolute structural fallback for non-semantic legacy markup",
+              "role": null,
+              "value": "/html[1]/body[1]/div[1]/div[1]/div[1]/aside[1]/div[2]/div[2]/div[1]/div[1]/div[1]"
+            }
+          ],
+          "transform": null
+        },
+        "name": "latest_claim",
+        "required": true,
+        "sensitive": false,
+        "type": "string"
+      }
+    ],
+    "schema_version": "1.0.0",
+    "steps": [
+      {
+        "action": "type",
+        "credential_ref": "DEMO_USERNAME",
+        "description": "Type into Provider ID",
+        "id": "step-01-type",
+        "locators": [
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "role_name",
+            "name": "Provider ID",
+            "rank": 1,
+            "reasoning": "Accessible role and name survived visual discovery",
+            "role": "textbox",
+            "value": null
+          },
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "css",
+            "name": null,
+            "rank": 2,
+            "reasoning": "Captured structural path; weaker than semantics and expected to drift",
+            "role": null,
+            "value": "input#hc-[REDACTED]-id"
+          },
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "xpath",
+            "name": null,
+            "rank": 3,
+            "reasoning": "Absolute structural fallback for non-semantic legacy markup",
+            "role": null,
+            "value": "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/form[1]/input[1]"
+          },
+          {
+            "anchor_text": null,
+            "coordinates": {
+              "recorded_viewport_height": 900,
+              "recorded_viewport_width": 1440,
+              "x_ratio": 0.49930555555555556,
+              "y_ratio": 0.56
+            },
+            "frame_path": [],
+            "kind": "coordinates",
+            "name": null,
+            "rank": 99,
+            "reasoning": "Last resort normalized visual coordinate from successful action",
+            "role": null,
+            "value": null
+          }
+        ],
+        "observation_rules": [],
+        "postconditions": [],
+        "preconditions": [],
+        "retry_policy": {
+          "backoff_multiplier": 2.0,
+          "initial_delay_ms": 250,
+          "jitter_ratio": 0.1,
+          "max_attempts": 2
+        },
+        "risk_class": "safe",
+        "value_template": null
+      },
+      {
+        "action": "type",
+        "credential_ref": "DEMO_PASSWORD",
+        "description": "Type into Password",
+        "id": "step-02-type",
+        "locators": [
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "role_name",
+            "name": "Password",
+            "rank": 1,
+            "reasoning": "Accessible role and name survived visual discovery",
+            "role": "textbox",
+            "value": null
+          },
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "css",
+            "name": null,
+            "rank": 2,
+            "reasoning": "Captured structural path; weaker than semantics and expected to drift",
+            "role": null,
+            "value": "input#hc-password"
+          },
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "xpath",
+            "name": null,
+            "rank": 3,
+            "reasoning": "Absolute structural fallback for non-semantic legacy markup",
+            "role": null,
+            "value": "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/form[1]/input[2]"
+          },
+          {
+            "anchor_text": null,
+            "coordinates": {
+              "recorded_viewport_height": 900,
+              "recorded_viewport_width": 1440,
+              "x_ratio": 0.49930555555555556,
+              "y_ratio": 0.6522222222222223
+            },
+            "frame_path": [],
+            "kind": "coordinates",
+            "name": null,
+            "rank": 99,
+            "reasoning": "Last resort normalized visual coordinate from successful action",
+            "role": null,
+            "value": null
+          }
+        ],
+        "observation_rules": [],
+        "postconditions": [],
+        "preconditions": [],
+        "retry_policy": {
+          "backoff_multiplier": 2.0,
+          "initial_delay_ms": 250,
+          "jitter_ratio": 0.1,
+          "max_attempts": 2
+        },
+        "risk_class": "safe",
+        "value_template": null
+      },
+      {
+        "action": "click",
+        "credential_ref": null,
+        "description": "Click Sign in",
+        "id": "step-03-click",
+        "locators": [
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "role_name",
+            "name": "Sign in",
+            "rank": 1,
+            "reasoning": "Accessible role and name survived visual discovery",
+            "role": "button",
+            "value": null
+          },
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "text",
+            "name": null,
+            "rank": 2,
+            "reasoning": "Visible text is a human-recognizable fallback",
+            "role": null,
+            "value": "Sign In"
+          },
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "css",
+            "name": null,
+            "rank": 3,
+            "reasoning": "Captured structural path; weaker than semantics and expected to drift",
+            "role": null,
+            "value": "button#hc-login-submit"
+          },
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "xpath",
+            "name": null,
+            "rank": 4,
+            "reasoning": "Absolute structural fallback for non-semantic legacy markup",
+            "role": null,
+            "value": "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/form[1]/button[1]"
+          },
+          {
+            "anchor_text": null,
+            "coordinates": {
+              "recorded_viewport_height": 900,
+              "recorded_viewport_width": 1440,
+              "x_ratio": 0.49930555555555556,
+              "y_ratio": 0.72
+            },
+            "frame_path": [],
+            "kind": "coordinates",
+            "name": null,
+            "rank": 99,
+            "reasoning": "Last resort normalized visual coordinate from successful action",
+            "role": null,
+            "value": null
+          }
+        ],
+        "observation_rules": [],
+        "postconditions": [],
+        "preconditions": [],
+        "retry_policy": {
+          "backoff_multiplier": 2.0,
+          "initial_delay_ms": 250,
+          "jitter_ratio": 0.1,
+          "max_attempts": 2
+        },
+        "risk_class": "safe",
+        "value_template": null
+      },
+      {
+        "action": "type",
+        "credential_ref": null,
+        "description": "Type into Search patients",
+        "id": "step-04-type",
+        "locators": [
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "role_name",
+            "name": "Search patients",
+            "rank": 1,
+            "reasoning": "Accessible role and name survived visual discovery",
+            "role": "textbox",
+            "value": null
+          },
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "css",
+            "name": null,
+            "rank": 2,
+            "reasoning": "Captured structural path; weaker than semantics and expected to drift",
+            "role": null,
+            "value": "input#patient-search-input"
+          },
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "xpath",
+            "name": null,
+            "rank": 3,
+            "reasoning": "Absolute structural fallback for non-semantic legacy markup",
+            "role": null,
+            "value": "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/header[1]/div[1]/input[1]"
+          },
+          {
+            "anchor_text": null,
+            "coordinates": {
+              "recorded_viewport_height": 900,
+              "recorded_viewport_width": 1440,
+              "x_ratio": 0.3076388888888889,
+              "y_ratio": 0.09444444444444444
+            },
+            "frame_path": [],
+            "kind": "coordinates",
+            "name": null,
+            "rank": 99,
+            "reasoning": "Last resort normalized visual coordinate from successful action",
+            "role": null,
+            "value": null
+          }
+        ],
+        "observation_rules": [],
+        "postconditions": [],
+        "preconditions": [],
+        "retry_policy": {
+          "backoff_multiplier": 2.0,
+          "initial_delay_ms": 250,
+          "jitter_ratio": 0.1,
+          "max_attempts": 2
+        },
+        "risk_class": "safe",
+        "value_template": "{member_id}"
+      },
+      {
+        "action": "click",
+        "credential_ref": null,
+        "description": "Click Select John Smith",
+        "id": "step-05-click",
+        "locators": [
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "role_name",
+            "name": "Select John Smith",
+            "rank": 1,
+            "reasoning": "Accessible role and name survived visual discovery",
+            "role": "button",
+            "value": null
+          },
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "text",
+            "name": null,
+            "rank": 2,
+            "reasoning": "Visible text is a human-recognizable fallback",
+            "role": null,
+            "value": "Select"
+          },
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "css",
+            "name": null,
+            "rank": 3,
+            "reasoning": "Captured structural path; weaker than semantics and expected to drift",
+            "role": null,
+            "value": "table > tbody > tr > td:nth-of-type(1) > div > button:nth-of-type(1)"
+          },
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "xpath",
+            "name": null,
+            "rank": 4,
+            "reasoning": "Absolute structural fallback for non-semantic legacy markup",
+            "role": null,
+            "value": "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/main[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/button[1]"
+          },
+          {
+            "anchor_text": null,
+            "coordinates": {
+              "recorded_viewport_height": 900,
+              "recorded_viewport_width": 1440,
+              "x_ratio": 0.2263888888888889,
+              "y_ratio": 0.27555555555555555
+            },
+            "frame_path": [],
+            "kind": "coordinates",
+            "name": null,
+            "rank": 99,
+            "reasoning": "Last resort normalized visual coordinate from successful action",
+            "role": null,
+            "value": null
+          }
+        ],
+        "observation_rules": [],
+        "postconditions": [],
+        "preconditions": [],
+        "retry_policy": {
+          "backoff_multiplier": 2.0,
+          "initial_delay_ms": 250,
+          "jitter_ratio": 0.1,
+          "max_attempts": 2
+        },
+        "risk_class": "safe",
+        "value_template": null
+      },
+      {
+        "action": "click",
+        "credential_ref": null,
+        "description": "Click Recent Claims",
+        "id": "step-06-click",
+        "locators": [
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "role_name",
+            "name": "Recent Claims",
+            "rank": 1,
+            "reasoning": "Accessible role and name survived visual discovery",
+            "role": "button",
+            "value": null
+          },
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "text",
+            "name": null,
+            "rank": 2,
+            "reasoning": "Visible text is a human-recognizable fallback",
+            "role": null,
+            "value": "Recent Claims\n\u25bc"
+          },
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "css",
+            "name": null,
+            "rank": 3,
+            "reasoning": "Captured structural path; weaker than semantics and expected to drift",
+            "role": null,
+            "value": "div > div > aside > div:nth-of-type(2) > div:nth-of-type(2) > button"
+          },
+          {
+            "anchor_text": null,
+            "coordinates": null,
+            "frame_path": [],
+            "kind": "xpath",
+            "name": null,
+            "rank": 4,
+            "reasoning": "Absolute structural fallback for non-semantic legacy markup",
+            "role": null,
+            "value": "/html[1]/body[1]/div[1]/div[1]/div[1]/aside[1]/div[2]/div[2]/button[1]"
+          },
+          {
+            "anchor_text": null,
+            "coordinates": {
+              "recorded_viewport_height": 900,
+              "recorded_viewport_width": 1440,
+              "x_ratio": 0.08958333333333333,
+              "y_ratio": 0.33111111111111113
+            },
+            "frame_path": [],
+            "kind": "coordinates",
+            "name": null,
+            "rank": 99,
+            "reasoning": "Last resort normalized visual coordinate from successful action",
+            "role": null,
+            "value": null
+          }
+        ],
+        "observation_rules": [],
+        "postconditions": [],
+        "preconditions": [],
+        "retry_policy": {
+          "backoff_multiplier": 2.0,
+          "initial_delay_ms": 250,
+          "jitter_ratio": 0.1,
+          "max_attempts": 2
+        },
+        "risk_class": "safe",
+        "value_template": null
+      }
+    ],
+    "success_checkpoint": {
+      "description": "Model-observed final UI state remains visible",
+      "expected": "Recent Claims panel expanded for selected patient John Smith ([REDACTED]), showing claim list: CLM-2026-0142 \u2014 Pending, CLM-2026-0139 \u2014 Approved, CLM-2026-0128 \u2014 Denied. Patient Summary shows Status: Active.",
+      "kind": "text_visible",
+      "locator": null,
+      "timeout_ms": 10000
+    },
+    "target": {
+      "allowed_origin": "https://demo.cloudcruise.com",
+      "app_id": "cloudcruise-healthcare",
+      "entry_url_template": "https://demo.cloudcruise.com/xpath-cascade-healthcare?reset=true",
+      "product_version": "1",
+      "surface": "web",
+      "vendor_product": "CloudCruise XPath Cascade Healthcare"
+    }
+  },
+  "computer_actions": 15,
+  "evidence_dir": "evidence/discovery/discovery-live",
+  "input_tokens": 68305,
+  "model_turns": 5,
+  "output_tokens": 1054,
+  "reason": null,
+  "run_id": "discovery-live",
+  "status": "success"
+}
