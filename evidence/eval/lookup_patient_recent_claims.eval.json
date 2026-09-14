@@ -1,22 +1,27 @@
 {
-  "artifact_hash": "sha256:e5c700ff887335e4b932185cf3c1f40fd6ca0ab9270b09d44e9618145e293a1e",
+  "artifact_hash": "sha256:6fc6023896d060df027b0f9e598e9405843b715699ac1fd23b0c58fdb1f917a7",
   "capability_name": "lookup_patient_recent_claims",
   "capability_version": "1.0.0",
-  "composite": 99.81,
-  "evaluated_at": "2026-09-14T10:05:56.307032Z",
+  "composite": 99.77,
+  "evaluated_at": "2026-09-14T10:35:37.311660Z",
   "gates": {
+    "bad_credentials_fidelity": true,
     "business_outcome_fidelity": true,
     "composite": true,
     "contract_score": true,
     "coordinate_fallback": true,
     "happy_path_success_rate": true,
+    "invalid_mrn_fidelity": true,
     "locator_quality": true,
-    "no_policy_denials": true,
-    "output_determinism": true
+    "no_unexpected_policy_denials": true,
+    "output_determinism": true,
+    "policy_egress_fidelity": true
   },
   "metrics": {
+    "attack_fidelity": 1.0,
+    "bad_credentials_fidelity": 1.0,
     "business_outcome_fidelity": 1.0,
-    "composite": 99.81,
+    "composite": 99.77,
     "contract_contract_score": 0.9808,
     "contract_coordinate_rank1_count": 0.0,
     "contract_has_business_rule": 1.0,
@@ -26,25 +31,33 @@
     "contract_score": 0.9808,
     "coordinate_fallback_rate": 0.0,
     "happy_path_success_rate": 1.0,
+    "invalid_mrn_fidelity": 1.0,
     "locator_quality": 0.885,
-    "mean_duration_ms": 5682.6,
+    "mean_duration_ms": 4548.9,
     "output_determinism": 1.0,
-    "policy_denials": 0.0
+    "policy_egress_fidelity": 1.0,
+    "trial_count": 48.0,
+    "unexpected_policy_denials": 0.0
   },
   "notes": [
-    "happy_path 5/5 success",
-    "not_found 5/5 PATIENT_NOT_FOUND",
+    "happy_path 8/8 success",
+    "not_found 16/16 PATIENT_NOT_FOUND",
+    "invalid_mrn 8/8",
+    "bad_credentials 8/8",
+    "policy_egress 8/8",
+    "human_recovery not run",
     "unique successful output fingerprints=1",
-    "locator kinds={'role_name': 45, 'xpath': 5}",
-    "promoted evidence/artifacts/lookup_patient_recent_claims.v1.json"
+    "locator kinds={'role_name': 136, 'xpath': 8}"
   ],
   "passed": true,
   "recommendation": "approve_unattended_replay",
-  "repeats": 5,
+  "repeats": 8,
   "trials": [
     {
-      "duration_ms": 10247,
+      "duration_ms": 4437,
       "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
       "locator_kinds": [
         "role_name",
         "role_name",
@@ -65,8 +78,10 @@
       "status": "success"
     },
     {
-      "duration_ms": 7105,
+      "duration_ms": 1870,
       "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
       "locator_kinds": [
         "role_name",
         "role_name",
@@ -87,8 +102,10 @@
       "status": "success"
     },
     {
-      "duration_ms": 7869,
+      "duration_ms": 2095,
       "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
       "locator_kinds": [
         "role_name",
         "role_name",
@@ -109,8 +126,10 @@
       "status": "success"
     },
     {
-      "duration_ms": 6046,
+      "duration_ms": 1767,
       "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
       "locator_kinds": [
         "role_name",
         "role_name",
@@ -131,8 +150,10 @@
       "status": "success"
     },
     {
-      "duration_ms": 4246,
+      "duration_ms": 1854,
       "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
       "locator_kinds": [
         "role_name",
         "role_name",
@@ -153,8 +174,82 @@
       "status": "success"
     },
     {
-      "duration_ms": 4278,
+      "duration_ms": 1819,
       "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name",
+        "xpath",
+        "role_name"
+      ],
+      "outcome_code": null,
+      "outputs": {
+        "insurance": "[REDACTED]",
+        "latest_claim": "[REDACTED]",
+        "patient_name": "[REDACTED]",
+        "patient_status": "Active"
+      },
+      "policy_denied": false,
+      "scenario": "happy_path",
+      "status": "success"
+    },
+    {
+      "duration_ms": 1964,
+      "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name",
+        "xpath",
+        "role_name"
+      ],
+      "outcome_code": null,
+      "outputs": {
+        "insurance": "[REDACTED]",
+        "latest_claim": "[REDACTED]",
+        "patient_name": "[REDACTED]",
+        "patient_status": "Active"
+      },
+      "policy_denied": false,
+      "scenario": "happy_path",
+      "status": "success"
+    },
+    {
+      "duration_ms": 1913,
+      "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name",
+        "xpath",
+        "role_name"
+      ],
+      "outcome_code": null,
+      "outputs": {
+        "insurance": "[REDACTED]",
+        "latest_claim": "[REDACTED]",
+        "patient_name": "[REDACTED]",
+        "patient_status": "Active"
+      },
+      "policy_denied": false,
+      "scenario": "happy_path",
+      "status": "success"
+    },
+    {
+      "duration_ms": 1728,
+      "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
       "locator_kinds": [
         "role_name",
         "role_name",
@@ -168,8 +263,10 @@
       "status": "business_outcome"
     },
     {
-      "duration_ms": 3892,
+      "duration_ms": 1688,
       "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
       "locator_kinds": [
         "role_name",
         "role_name",
@@ -183,8 +280,10 @@
       "status": "business_outcome"
     },
     {
-      "duration_ms": 4519,
+      "duration_ms": 2106,
       "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
       "locator_kinds": [
         "role_name",
         "role_name",
@@ -198,8 +297,10 @@
       "status": "business_outcome"
     },
     {
-      "duration_ms": 4416,
+      "duration_ms": 1839,
       "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
       "locator_kinds": [
         "role_name",
         "role_name",
@@ -213,8 +314,10 @@
       "status": "business_outcome"
     },
     {
-      "duration_ms": 4208,
+      "duration_ms": 1690,
       "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
       "locator_kinds": [
         "role_name",
         "role_name",
@@ -226,6 +329,521 @@
       "policy_denied": false,
       "scenario": "not_found",
       "status": "business_outcome"
+    },
+    {
+      "duration_ms": 2077,
+      "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": "PATIENT_NOT_FOUND",
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "not_found",
+      "status": "business_outcome"
+    },
+    {
+      "duration_ms": 1593,
+      "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": "PATIENT_NOT_FOUND",
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "not_found",
+      "status": "business_outcome"
+    },
+    {
+      "duration_ms": 1689,
+      "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": "PATIENT_NOT_FOUND",
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "not_found",
+      "status": "business_outcome"
+    },
+    {
+      "duration_ms": 1911,
+      "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": "PATIENT_NOT_FOUND",
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "not_found_alt",
+      "status": "business_outcome"
+    },
+    {
+      "duration_ms": 1602,
+      "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": "PATIENT_NOT_FOUND",
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "not_found_alt",
+      "status": "business_outcome"
+    },
+    {
+      "duration_ms": 1885,
+      "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": "PATIENT_NOT_FOUND",
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "not_found_alt",
+      "status": "business_outcome"
+    },
+    {
+      "duration_ms": 1578,
+      "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": "PATIENT_NOT_FOUND",
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "not_found_alt",
+      "status": "business_outcome"
+    },
+    {
+      "duration_ms": 1625,
+      "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": "PATIENT_NOT_FOUND",
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "not_found_alt",
+      "status": "business_outcome"
+    },
+    {
+      "duration_ms": 1693,
+      "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": "PATIENT_NOT_FOUND",
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "not_found_alt",
+      "status": "business_outcome"
+    },
+    {
+      "duration_ms": 1544,
+      "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": "PATIENT_NOT_FOUND",
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "not_found_alt",
+      "status": "business_outcome"
+    },
+    {
+      "duration_ms": 1685,
+      "failure_code": null,
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": "PATIENT_NOT_FOUND",
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "not_found_alt",
+      "status": "business_outcome"
+    },
+    {
+      "duration_ms": 1,
+      "failure_code": "INVALID_INPUT",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "invalid_mrn",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 0,
+      "failure_code": "INVALID_INPUT",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "invalid_mrn",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 0,
+      "failure_code": "INVALID_INPUT",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "invalid_mrn",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 0,
+      "failure_code": "INVALID_INPUT",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "invalid_mrn",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 0,
+      "failure_code": "INVALID_INPUT",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "invalid_mrn",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 0,
+      "failure_code": "INVALID_INPUT",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "invalid_mrn",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 0,
+      "failure_code": "INVALID_INPUT",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "invalid_mrn",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 0,
+      "failure_code": "INVALID_INPUT",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "invalid_mrn",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 21522,
+      "failure_code": "STEP_FAILED",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "bad_credentials",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 21450,
+      "failure_code": "STEP_FAILED",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "bad_credentials",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 21509,
+      "failure_code": "STEP_FAILED",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "bad_credentials",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 21628,
+      "failure_code": "STEP_FAILED",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "bad_credentials",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 21522,
+      "failure_code": "STEP_FAILED",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "bad_credentials",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 21975,
+      "failure_code": "STEP_FAILED",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "bad_credentials",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 21469,
+      "failure_code": "STEP_FAILED",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "bad_credentials",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 21618,
+      "failure_code": "STEP_FAILED",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [
+        "role_name",
+        "role_name",
+        "role_name",
+        "role_name"
+      ],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "bad_credentials",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 3,
+      "failure_code": "ORIGIN_NOT_ALLOWED",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "policy_egress",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 0,
+      "failure_code": "ORIGIN_NOT_ALLOWED",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "policy_egress",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 0,
+      "failure_code": "ORIGIN_NOT_ALLOWED",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "policy_egress",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 0,
+      "failure_code": "ORIGIN_NOT_ALLOWED",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "policy_egress",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 0,
+      "failure_code": "ORIGIN_NOT_ALLOWED",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "policy_egress",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 0,
+      "failure_code": "ORIGIN_NOT_ALLOWED",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "policy_egress",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 0,
+      "failure_code": "ORIGIN_NOT_ALLOWED",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "policy_egress",
+      "status": "hard_failure"
+    },
+    {
+      "duration_ms": 0,
+      "failure_code": "ORIGIN_NOT_ALLOWED",
+      "handoff_used": false,
+      "human_action_count": 0,
+      "locator_kinds": [],
+      "outcome_code": null,
+      "outputs": null,
+      "policy_denied": false,
+      "scenario": "policy_egress",
+      "status": "hard_failure"
     }
   ]
 }

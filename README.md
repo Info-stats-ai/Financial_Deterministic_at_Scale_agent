@@ -37,7 +37,7 @@ There is no model fine-tuning. The JSON artifact *is* the skill.
 | **Situation** | Production cannot afford Claude on every member lookup. |
 | **Task** | Learn the UI once; replay many times with typed args and no LLM. |
 | **Action** | Claude discovers with screenshots/coordinates. The compiler writes a **draft** artifact (ranked locators, `{member_id}`, checkpoints, outcome rules). A human reviews it into the golden file. Replay is a state machine: unique locator, declared waits, `PATIENT_NOT_FOUND` vs hard failure. |
-| **Result** | Golden eval composite **99.81** (5/5 success, 5/5 not-found). `invoke` is gated on that approval. A new version is a new reviewed hash, not a training job. Offline HAR only restages the site. |
+| **Result** | Golden eval composite **99.77** (48 trials: 8× happy, 16× not-found, invalid MRN, bad password, policy block). HITL login recovery is tested on the same locators. `invoke` is gated on approval. |
 
 ## Prerequisites
 

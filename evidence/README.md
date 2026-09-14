@@ -7,8 +7,9 @@ institution, account, or credential data is present.
 
 - `artifacts/lookup_patient_recent_claims.v1.json` — reviewed, eval-promoted artifact
   (`approved_for_unattended_replay: true`).
-- `eval/lookup_patient_recent_claims.eval.json` — 5× happy path + 5× not-found offline
-  score (composite 99.81, all gates passed).
+- `eval/lookup_patient_recent_claims.eval.json` — 48 offline trials (8× happy path,
+  16× not-found, invalid MRN, bad password, off-allowlist). Composite 99.77, all
+  gates passed. Same-session human recovery is covered by `tests/test_eval_hitl.py`.
 - `eval/discovery-live.contract.json` — static score of the live draft (fails promotion).
 - `discovery/discovery-live/` — genuine Anthropic computer-use run (not a fake-model test).
 - `replay/replay-success/` — model-free successful replay with redacted typed outputs.
