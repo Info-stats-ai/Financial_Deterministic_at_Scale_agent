@@ -28,11 +28,12 @@ Typer CLI, FastAPI/Uvicorn operator UI, YAML policy, HAR offline restage. The pr
 target is CloudCruise’s public synthetic claims portal (login → search → select → claims,
 shuffled columns, no real PII) standing in for a multi-tenant vendor core.
 
-**Result / trade-off.** Discovery is a slow control plane (committed live run: 15 computer
-actions, 68,305 input / 1,054 output tokens, status `success`). Replay is a cheap data
-plane (committed happy path ~2.6s, six steps). A single process is one failure domain —
-correct for this slice. At scale, keep these ports and put runs on a queue with one
-worker lease per live session. The artifact contract would not change.
+**Result.**
+
+- Discovery (control plane): 15 computer actions, 68,305 / 1,054 tokens, `success`
+- Replay (data plane): ~2.6s happy path, 6 steps, no LLM
+- Trade-off: one process = one failure domain — correct for this slice
+- At scale: same ports, queue + one worker lease per live session; artifact contract unchanged
 
 # Artifact schema
 
@@ -53,11 +54,12 @@ Canonical JSON is hashed; load fails on tamper. Discovery writes
 `data-column='mrn'` and `{member_id}`, so shuffled columns do not matter. `catalog` /
 `invoke` expose the skill by name; drafts are refused until eval `--promote`.
 
-**Result / trade-off.** Golden contract score **0.981**, locator quality **0.885**, 12
-locators, parameterized, business rule present, zero rank-1 coordinates. Live compile
-score **0.706** — fails promotion (no `PATIENT_NOT_FOUND` rule, brittle CSS). Strictness
-costs migrations; silent extra-field interpretation is worse. Promotion path: draft →
-reviewed → eval gates → `approved_for_unattended_replay`.
+**Result.**
+
+- Golden: contract **0.981**, locator quality **0.885**, 12 locators, parameterized, business rule present, 0 rank-1 coordinates
+- Live draft: contract **0.706** — fails promotion (no `PATIENT_NOT_FOUND`, brittle CSS)
+- Trade-off: strict schema costs migrations; silent extra fields are worse
+- Promotion path: draft → reviewed → eval gates → `approved_for_unattended_replay`
 
 # Determinism & error handling
 
@@ -82,12 +84,13 @@ Recoverable rules may retry/wait/dismiss/reauthenticate; exhaustion is not a cra
 Unknown UI → `hard_failure` with step, expected, observed, masked screenshot. Replay never
 asks a model “is this an error?” Locator-tier mix is drift telemetry.
 
-**Result.** Offline eval, 48 trials, composite **99.77**, recommendation
-`approve_unattended_replay`: 8/8 happy path, 16/16 not-found, 8/8 invalid MRN, 8/8 bad
-password, 8/8 origin block, identical successful outputs, **0** coordinate fallbacks, 0
-unexpected policy denials, mean **4.5s**. Committed examples: success (6 steps),
-`PATIENT_NOT_FOUND` (3 steps), hard-failure at `sign-in` with masked PNG. Replay packages
-contain no Anthropic import. The live draft fails the same gates on purpose.
+**Result.**
+
+- Offline eval: 48 trials, composite **99.77**, `approve_unattended_replay`
+- Happy path **8/8**, not-found **16/16**, invalid MRN **8/8**, bad password **8/8**, origin block **8/8**
+- Identical successful outputs, **0** coordinate fallbacks, 0 unexpected policy denials, mean **4.5s**
+- Committed: success (6 steps), `PATIENT_NOT_FOUND` (3 steps), hard-failure at `sign-in` + masked PNG
+- Replay packages contain no Anthropic import; live draft fails the same gates on purpose
 
 # Heterogeneity & multi-tenant
 
@@ -107,9 +110,11 @@ or frame path; they must not silently weaken risk class. Bindings pin
 outcome rates. Correlated coordinate fallback across tenants triggers vendor-level
 re-discovery, not N copies. The CloudCruise demo is the stand-in vendor product.
 
-**Result / trade-off.** Only Playwright web is implemented — as the brief allows. Replay
-does not embed tenant strings or DOM-only APIs in the contract. Next overlay would be the
-demo’s own layout-drift mode, not a second institution’s production core.
+**Result.**
+
+- Only Playwright web is implemented — as the brief allows
+- Replay does not embed tenant strings or DOM-only APIs in the contract
+- Next overlay: demo layout-drift mode, not a second bank’s production core
 
 # Escalation & handoff
 
@@ -128,13 +133,14 @@ page mutates in-process `SessionManager`; the clerk uses the headed Playwright w
 Listeners log click/change without values. After resume, replay re-verifies the
 postcondition. Tests assert `BrowserContext` object identity.
 
-**Result / trade-off.** The transfer protocol is real; the operator UI is a mock.
-`evaluate-hitl` ran **100** failed-login escalations on a hermetic portal (not the live
-demo): **70** recovered after the clerk typed the real password, **15** abandoned
-(`HANDOFF_NOT_RESUMED`), **15** resumed with another bad password (`STEP_FAILED`).
-**100/100** same session, all expected statuses matched. Production would add a worker
-lease, redacted remote view, and fencing tokens. In-memory ownership dies with the
-process.
+**Result.**
+
+- Transfer protocol is real; operator UI is a mock
+- HITL pack: **100** failed-login escalations on a hermetic portal (not live CloudCruise)
+- **70** recover, **15** abandon (`HANDOFF_NOT_RESUMED`), **15** fail-again (`STEP_FAILED`)
+- **100/100** same `BrowserContext`, all expected statuses matched
+- Production next: worker lease, redacted remote view, fencing tokens
+- Trade-off: in-memory ownership dies with the process
 
 # Safety
 
@@ -151,10 +157,12 @@ store `DEMO_PASSWORD`, not the value. `Redactor` runs on every JSON/JSONL write.
 Screenshots mask inputs and known sensitive regions. Secret-scan tests skip `.env` and
 fail on committed Anthropic keys.
 
-**Result / trade-off.** Eval policy-egress trials **8/8** `ORIGIN_NOT_ALLOWED`. Regex DLP
-is incomplete (live discovery over-matched `"provider"` inside an element id). Production
-needs isolated browsers, encryption, short retention, and signed policy. No real bank data
-is in the repo.
+**Result.**
+
+- Policy-egress eval: **8/8** `ORIGIN_NOT_ALLOWED`
+- Regex DLP is incomplete (live run over-matched `"provider"` inside an element id)
+- Production needs isolated browsers, encryption, short retention, signed policy
+- No real bank data in the repo
 
 # Cuts
 
@@ -170,8 +178,9 @@ driver, OCR, distributed queue, registry DB, remote video co-browsing, tenant ad
 schema migration service, or bounded LLM repair during replay. Operator UI is minimal;
 live compile stays a draft; HAR is a demo fixture.
 
-**Result.** `/evidence/discovery/discovery-live/` is the genuine Claude run. Production
-replay uses the eval-promoted golden artifact (hash
-`sha256:6fc6023896d060df027b0f9e598e9405843b715699ac1fd23b0c58fdb1f917a7`). Unattended
-`invoke` is refused for drafts. Next: a vendor-version overlay on the demo’s drift mode —
-then workers, not before.
+**Result.**
+
+- Genuine Claude run: `/evidence/discovery/discovery-live/`
+- Production replay: eval-promoted golden hash `sha256:6fc6023896d060df027b0f9e598e9405843b715699ac1fd23b0c58fdb1f917a7`
+- Unattended `invoke` refused for drafts
+- Next: vendor-version overlay on the demo’s drift mode — then workers, not before

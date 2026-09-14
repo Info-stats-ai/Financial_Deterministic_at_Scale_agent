@@ -1,127 +1,184 @@
 # Deterministic Computer-Use Capabilities
 
-A servicing clerk’s job on a **legacy UI with no API**: log in, look up a member, read
-recent claims, return typed fields. Today that is either a human clicking or an LLM
-re-driving the screen on every request. This system does neither in production.
-
 **Discover once with Claude. Compile a typed capability. Replay with no LLM.**
 
-Public repo: https://github.com/Info-stats-ai/Financial_Deterministic_at_Scale_agent
+- Public repo: https://github.com/Info-stats-ai/Financial_Deterministic_at_Scale_agent
+- Design write-up (STAR, seven required headings): [REPORT.md](REPORT.md)
+- Proof pack: [evidence/](evidence/README.md)
+- Target: CloudCruise **public synthetic** healthcare portal (`provider` / `claims123`)
+- Stand-in for a vendor core used by many banks and credit unions
+- No real patient or bank data; this repo is not affiliated with CloudCruise
 
-The live target is CloudCruise’s **public synthetic** healthcare portal (fake credentials
-`provider` / `claims123`). It stands in for a vendor core used by many banks and credit
-unions. This repo is not affiliated with CloudCruise and contains **no real patient or
-bank data**.
+## Problem we solved
 
-| File | Role |
-|---|---|
-| [REPORT.md](REPORT.md) | Design write-up — STAR under the brief’s seven headings |
-| [evidence/](evidence/README.md) | Live discovery, golden artifact, three replay outcomes, eval, HITL |
+- Servicing still runs on **legacy UIs with no API**
+- A clerk logs in, looks up a member, reads recent claims, copies a few fields
+- Two bad options today:
+  - humans click the same path thousands of times
+  - an LLM re-drives the screen on **every** request (cost, latency, non-determinism)
+- Production needs a **named, invocable skill**, not a chat that “tries the UI again”
 
-## What is actually being automated
+## Task we are automating
 
-Not “an agent that chats about claims.” A **named, invocable skill**:
-`lookup_patient_recent_claims`.
+- Capability name: `lookup_patient_recent_claims`
+- Who: back-office operator, or an upstream agent calling a tool
+- Where: a browser UI that will not grow a stable API
+- Flow:
+  - sign in
+  - search `{member_id}`
+  - select the matching patient row
+  - expand Recent Claims
+  - return typed fields
+- Inputs: `member_id` (`MRN-#####`); credential *references* `DEMO_USERNAME` / `DEMO_PASSWORD` (values never stored in the skill)
+- Outputs:
+  - typed fields (`patient_status`, `latest_claim`, …), **or**
+  - business outcome `PATIENT_NOT_FOUND` (`failure: null`), **or**
+  - hard failure with expected vs observed + masked screenshot
+- Chat is used only to **author** the skill, not to run it in production
 
-- **Who:** a back-office operator (or an upstream AI agent calling a tool).
-- **Where:** a browser UI that will not grow a stable API.
-- **Flow:** sign in → search by `{member_id}` → select the matching row → expand Recent
-  Claims → extract `patient_status`, `latest_claim`, and related fields.
-- **Inputs:** typed `member_id` (pattern `MRN-#####`), runtime credential *references*
-  (`DEMO_USERNAME`, `DEMO_PASSWORD`) — never passwords stored in the skill.
-- **Outputs:** declared JSON fields, or a **business outcome** (`PATIENT_NOT_FOUND`), or a
-  **hard failure** with expected vs observed and a masked screenshot.
+## What we built
 
-That is the production object. Chat is only used to *author* it.
+- End-to-end **record → compile → replay** system
+- **Discovery agent** — Claude computer-use authors the skill once
+- **Replay engine** — deterministic interpreter; **no LLM** on the lookup path
+- **Human clerk** — same Playwright session (`:8787`), not a new browser
+- **Catalog / invoke** — another agent calls the skill by name with typed args
+- Policy allowlist, redaction, eval gates, HITL ledger
+- Draft skills cannot run unattended until eval `--promote`
 
-## Two agents — how they are built, and how they differ
+## First-go agent vs deterministic agent
 
-There is not one “AI agent.” There are two runtimes with opposite jobs.
+### First go (authoring) — stochastic
 
-| | **Discovery agent** (authoring) | **Replay engine** (production) |
-|---|---|---|
-| **What it is** | Claude computer-use loop | Deterministic interpreter |
-| **How it is built** | `DiscoveryLoop` + Anthropic computer toolset. Sees screenshot + coordinates. No hidden “clean DOM” cheat. `LocatorHarvester` fingerprints the clicked control. `ArtifactCompiler` writes JSON. | `ReplayEngine`. Reads the artifact. Resolves ranked locators (exactly one match). Runs policy. Clicks/types. Checks checkpoints. Classifies outcomes. **Does not import Anthropic.** |
-| **When it runs** | Once per capability version (or after vendor drift). | Every lookup. |
-| **Decision maker** | Stochastic LLM. | The JSON artifact. No model call. |
-| **Failure mode** | Stuck detector → same-session human. Compile is a **draft**. | `business_outcome` vs `hard_failure` vs handoff. Never “ask Claude if this looks like an error.” |
-| **Cost** | 15 computer actions, 68,305 in / 1,054 out tokens on the committed live run. | ~2.5s happy path on the committed replay; mean 4.5s across 48 eval trials. |
+- Runtime: `DiscoveryLoop` + Anthropic computer-use
+- Sees screenshot + coordinates (no hidden “clean DOM” cheat)
+- After each successful click, `LocatorHarvester` fingerprints the control
+- `ArtifactCompiler` writes a **draft** JSON skill
+- Committed live run: **15** computer actions, **68,305 / 1,054** tokens, status `success`
+- Draft contract score **0.706** — **fails** promotion (no `PATIENT_NOT_FOUND` rule, brittle CSS)
+- Use this path **once per skill version** (or after vendor drift)
+- Do **not** put this on every member lookup
 
-A **third** actor is a human clerk, not an LLM: `SessionManager` + operator console at
-`:8787`. Control is `automation → pending_human → human → automation` on the **same**
-Playwright `BrowserContext`. Cookies and the login form stay put.
+### Deterministic path (production) — no LLM
 
-An **upstream** agent (another LLM, a workflow, a ticket bot) does not open the JSON. It
-calls `capability catalog` / `capability invoke` with typed args. Drafts are refused until
-eval promotion.
+- Runtime: `ReplayEngine` (does **not** import Anthropic)
+- Decision maker: the JSON artifact, not a model
+- Same ordered steps: validate → allowlisted URL → unique locator (never 2-of-N) → policy → act → checkpoint → classify
+- Happy path: **6** steps, ~**2.6s**
+- Missing member: `business_outcome`, not a crash
+- Bad password: `hard_failure` + masked screenshot
+- Golden contract score **0.981**, locator quality **0.885**
+- This is the path that **scales**
+
+### Other actors
+
+- Human: `automation → pending_human → human → automation` on the **same** `BrowserContext`
+- Upstream agent: `capability catalog` / `capability invoke` — never opens the JSON file
+- Drafts refused until eval promotion
+
+## Business impact
+
+- **Cost:** LLM tokens belong on authoring (one discovery), not on every lookup (~2.6s replay vs 68k-token computer-use run)
+- **Latency / throughput:** a clerk or upstream bot can invoke a skill instead of waiting on a chat loop
+- **Determinism:** same MRN → same outputs (eval output fingerprint = 1); auditors can replay the artifact
+- **Exception hygiene:** “member not found” is a **business result**, not an incident; bad login / off-allowlist is a **hard failure** with evidence
+- **Risk:** origin/route/action allowlist before every click; risky/irreversible needs a human; secrets never stored in the skill
+- **HITL without session loss:** clerk takes the **live** browser (cookies, login form intact) — a new window is not a handoff
+- **Multi-tenant path:** one vendor skill + overlays, not “re-record for every bank”
+- **Unattended gate:** `approved_for_unattended_replay` only after measured gates (composite 99.77) — drafts cannot silently go to prod
+- What this is **not**: a replacement for a real core API; it is how you automate the UI **until** that API exists, without betting production on a live LLM
+
+## Evidence — what we did
+
+- Genuine Claude discovery (not a fake-model test): `evidence/discovery/discovery-live/`
+- Reviewed golden skill: `evidence/artifacts/lookup_patient_recent_claims.v1.json`
+- Replay success: `evidence/replay/replay-success/`
+- Exceptional state (not-found): `evidence/replay/replay-not-found/`
+- Hard failure + masked PNG: `evidence/replay/replay-hard-failure/`
+- 48-trial eval report: `evidence/eval/lookup_patient_recent_claims.eval.json`
+- Draft fails promotion: `evidence/eval/discovery-live.contract.json`
+- 100 same-session HITL cases: `evidence/eval/hitl-100/`
+- Offline HAR (no live network): `evidence/fixtures/cloudcruise-healthcare.har`
+
+## How we tested
+
+- Unit / integration: `uv run pytest -q` (schema, replay, policy, handoff, eval, deliverable paths)
+- Reliability gates: `uv run capability evaluate` (8 repeats × scenarios; `--promote` only if all gates pass)
+- HITL pack: `uv run capability evaluate-hitl` (hermetic portal; does **not** hammer the live demo)
+- Offline path: `--offline-har evidence/fixtures/cloudcruise-healthcare.har` (unrecorded requests abort)
+- Secret scan: no committed Anthropic keys; `.env` gitignored
+- Replay package grep: no `anthropic` import under `src/interface_ai/replay/`
+
+## Results
+
+- Live discovery: **success**, **15** computer actions, **68,305** input / **1,054** output tokens
+- Golden replay: **success**, **6** steps, ~**2.6s**, typed outputs (redacted in logs)
+- Not-found: `business_outcome` **`PATIENT_NOT_FOUND`**, `failure: null`
+- Bad password: `hard_failure` at `sign-in` + masked screenshot
+- Offline eval: **48** trials, composite **99.77**, **all gates passed**, recommend `approve_unattended_replay`
+- Happy path: **8/8** success, **1** output fingerprint, **0** coordinate fallbacks
+- Not-found: **16/16** `PATIENT_NOT_FOUND`
+- Attacks: invalid MRN **8/8**, bad password **8/8**, off-allowlist URL **8/8**
+- Locator quality **0.885**; golden contract **0.981**; live draft **0.706** (not promoted)
+- HITL: **100/100** matched expected; **70** recover / **15** abandon / **15** fail-again; same `BrowserContext` **100%**
+- Tests: **36** passed
+- Mean eval duration: **4.5s** per trial
 
 ## Architecture
 
 ```text
-                    authoring (slow, LLM)              production (cheap, no LLM)
-                 ┌─────────────────────────┐        ┌──────────────────────────────┐
-  natural-language goal                     │        │  catalog / invoke / CLI      │
-                 ▼                          │        ▼                              │
-  DiscoveryLoop ── Claude computer tools ───┼──► CapabilityArtifact (JSON + hash)  │
-                 │                          │        │                              │
-                 │ harvest locators         │        ▼                              │
-                 │ compile draft            │     ReplayEngine                      │
-                 └──────────┬───────────────┘        │ unique locator → policy      │
-                            │                        │ → act → checkpoint           │
-                            ▼                        │ → business / hard / handoff  │
-                 human review + evaluate ────────────┘                              │
-                            │                                                       │
-                            ▼                                                       │
-                 approved_for_unattended_replay                                     │
-                                                                                    │
-  shared: PlaywrightWebSurface  PolicyGate  SessionManager  EvidenceRecorder  :8787 │
+  authoring (slow, LLM)                         production (cheap, no LLM)
+  natural-language goal                         catalog / invoke / CLI
+          │                                              │
+          ▼                                              ▼
+  DiscoveryLoop ── Claude computer tools ──► CapabilityArtifact (JSON + hash)
+          │                                              │
+          │ harvest + compile draft                      ▼
+          ▼                                       ReplayEngine
+  human review + evaluate                         unique locator → policy
+          │                                       → act → checkpoint
+          ▼                                       → business / hard / handoff
+  approved_for_unattended_replay
+
+  shared: PlaywrightWebSurface  PolicyGate  SessionManager  EvidenceRecorder  :8787
 ```
 
-- **CLI (`capability`)** — Typer entry: `discover`, `replay`, `catalog`, `invoke`,
-  `evaluate`, `evaluate-hitl`.
-- **SurfaceDriver** — perception/action seam. Only Playwright web is implemented; desktop
-  would swap the driver, not the artifact schema.
-- **PolicyGate** — fail-closed origin, route, action allowlist; risky/irreversible needs a
-  human. Checked *before* the click.
-- **Artifact** — the skill. Ranked locators, `{member_id}` templates, checkpoints,
-  observation rules, risk class, SHA-256 integrity.
-- **Evidence** — append-only JSONL through a redactor. Masked PNGs on failure.
+- **CLI** — `discover`, `replay`, `catalog`, `invoke`, `evaluate`, `evaluate-hitl`
+- **SurfaceDriver** — observe / act / snapshot; only Playwright web in this slice
+- **Artifact** — ranked locators, `{member_id}`, checkpoints, outcome rules, SHA-256
+- **PolicyGate** — origin + route + action allowlist **before** the click
+- **Evidence** — append-only JSONL through a redactor; masked PNGs on failure
 
-Design write-up with trade-offs: [REPORT.md](REPORT.md).
+Trade-offs and STAR write-up: [REPORT.md](REPORT.md)
 
-## What we achieved (measured)
+## Tech stack — building the system
 
-| Signal | Result | Where |
-|---|---|---|
-| Live Claude discovery | **success**, **15** computer actions, **68,305 / 1,054** tokens | `evidence/discovery/discovery-live/` |
-| Golden replay | **success**, 6 steps, ~2.6s, typed outputs (redacted in logs) | `evidence/replay/replay-success/` |
-| Missing member | `business_outcome` **`PATIENT_NOT_FOUND`**, `failure: null` | `evidence/replay/replay-not-found/` |
-| Bad password | `hard_failure` + masked screenshot | `evidence/replay/replay-hard-failure/` |
-| Offline eval | **48** trials, composite **99.77**, **all gates passed** | `evidence/eval/lookup_patient_recent_claims.eval.json` |
-| Happy path | **8/8** success, identical output fingerprint, **0** coordinate fallbacks | same |
-| Not-found | **16/16** `PATIENT_NOT_FOUND` | same |
-| Attacks | invalid MRN, bad password, off-allowlist URL: **8/8** each | same |
-| Locator quality | **0.885**; contract score **0.981**; draft compile **fails** promotion (0.706, no business rule) | golden vs `discovery-live.contract.json` |
-| HITL pack | **100/100** tracked login escalations, **100%** same `BrowserContext` (70 recover, 15 abandon, 15 bad resume) | `evidence/eval/hitl-100/` |
-| Tests | **36** passed (schema, replay, policy, handoff, eval, deliverable paths) | `uv run pytest -q` |
+- Python 3.11+, async, `uv`
+- Pydantic v2 contracts (forbid extra fields), canonical JSON, SHA-256
+- Playwright Chromium (`SurfaceDriver`)
+- Typer CLI (`capability`)
+- FastAPI + Uvicorn + Jinja operator console (in-process with the browser)
+- YAML policy (`config/policy.yaml`)
+- HAR restage for offline replay (`not_found=abort`)
+- pytest, ruff, mypy strict
 
-Replay is **scored, not trained**. There is no fine-tune. The JSON *is* the skill.
-`--promote` sets `approved_for_unattended_replay` only if every gate passes.
+## Tech stack — the agents
 
-## Tech stack
+- **Discovery agent:** Anthropic Claude computer-use (`claude-sonnet-5` by default); screenshot + coordinate tools; stuck detector; locator harvest; compiler
+- **Replay engine:** no model; ranked locators; checkpoint verifier; 3-way outcomes (`success` / `business_outcome` / `hard_failure`); bounded retries
+- **Human operator:** FastAPI session state machine on the live `BrowserContext`
+- **Upstream agent:** JSON tool spec from `catalog`; `invoke` is replay with an approval gate
+- **Eval agent (simulated clerk):** hermetic HTML portal + `SimulatedClaimsOperator` for 100 HITL cases
 
-- **Language / runtime:** Python 3.11+, async, `uv`
-- **Contracts:** Pydantic v2 (forbid extra fields), canonical JSON, SHA-256
-- **Browser:** Playwright Chromium (`SurfaceDriver`)
-- **Discovery LLM:** Anthropic Claude computer-use (`claude-sonnet-5` by default)
-- **CLI:** Typer (`capability`)
-- **Operator console:** FastAPI + Uvicorn + Jinja, in-process with the browser
-- **Policy:** YAML allowlist (`config/policy.yaml`)
-- **Eval / HITL:** replayed trials + simulated clerk on a hermetic HTML portal
-- **Offline:** HAR restage (`not_found=abort`) — no silent live fallback
-- **Quality:** pytest, ruff, mypy strict
+## Future improvements
 
-Cuts (queues, k8s, desktop driver, co-browsing video): [REPORT.md](REPORT.md) § Cuts.
+- Vendor-version overlay on the demo’s layout-drift mode (one base skill, per-version patches) — **next**
+- Desktop `SurfaceDriver` (same artifact schema, different adapter)
+- Worker lease / queue so many live sessions do not share one process
+- Redacted remote view + fencing tokens for true distributed HITL
+- Bounded, policy-checked single-step LLM repair on replay (never open-ended) — stretch, after the core stays clean
+- Postgres-backed artifact registry (draft → canary → approved)
+- Do **not** build next: k8s, multi-tenant plumbing, or “LLM on every click”
 
 ## Setup
 
@@ -137,12 +194,13 @@ uv run playwright install chromium
 cp .env.example .env
 ```
 
-`.env` is gitignored. Set `ANTHROPIC_API_KEY` only to re-run live discovery. Demo
-username/password are the public synthetic credentials from the demo site.
+- `.env` is gitignored
+- Set `ANTHROPIC_API_KEY` only to re-run live discovery
+- Demo username/password are the public synthetic credentials from the demo site
 
 ## Demo path: discover, then replay the resulting artifact
 
-Required path: run the agent on a goal, then replay **the file it wrote**.
+- Required path: run the agent on a goal, then replay **the file it wrote**
 
 ```bash
 uv run capability discover \
@@ -151,19 +209,9 @@ uv run capability discover \
   --evidence-label live
 ```
 
-Operator console: <http://127.0.0.1:8787>. Output:
-
-```text
-evidence/discovery/discovery-live/
-  events.jsonl
-  final.png
-  artifact.json
-  result.json
-  network.har
-```
-
-A committed copy of that run is already in the repo (real token usage, computer actions,
-redacted HAR). Then replay **that** compiled artifact — no LLM:
+- Operator console: <http://127.0.0.1:8787>
+- Output: `evidence/discovery/discovery-live/` (`events.jsonl`, `final.png`, `artifact.json`, `result.json`, `network.har`)
+- Committed copy already in the repo (real tokens, computer actions, redacted HAR)
 
 ```bash
 uv run capability replay \
@@ -172,13 +220,12 @@ uv run capability replay \
   --evidence-label draft-replay
 ```
 
-That compile is a **draft**. Locators are weaker than the reviewed golden file. Treat a
-flake here as a review signal, not the production contract.
+- That compile is a **draft** — weaker locators than the golden file; a flake here is a review signal, not the production contract
 
 ## Run without live services
 
-No API key and no network fallback. The committed HAR serves recorded frontend responses
-and aborts every unrecorded request.
+- No API key
+- No silent network fallback
 
 ```bash
 uv run capability replay \
@@ -197,9 +244,7 @@ uv run capability replay \
   --evidence-label live-success
 ```
 
-Expected: `success`, six completed steps, typed outputs. Secrets are redacted in logs.
-
-Not-found is a business outcome, not a crash:
+- Expected: `success`, six completed steps, typed outputs (secrets redacted in logs)
 
 ```bash
 uv run capability replay \
@@ -226,9 +271,6 @@ uv run capability evaluate \
   --offline-only
 ```
 
-`--live-hitl` adds live-demo login recovery. One hundred tracked HITL failures on a
-hermetic portal (does not hammer CloudCruise):
-
 ```bash
 uv run capability evaluate-hitl
 ```
@@ -244,7 +286,7 @@ uv run capability invoke \
   --evidence-label catalog-invoke
 ```
 
-`invoke` refuses drafts unless `--allow-draft`.
+- `invoke` refuses drafts unless `--allow-draft`
 
 ## Same-session human handoff
 
@@ -257,9 +299,11 @@ DEMO_PASSWORD=wrong-demo-value uv run capability replay \
   --evidence-label handoff
 ```
 
-Open <http://127.0.0.1:8787> → **Take control** → in the already-open Playwright window,
-replace the password with `claims123` and sign in → **Resume automation**. Replay
-re-verifies `Patients` on the same `BrowserContext`.
+- Open <http://127.0.0.1:8787>
+- **Take control**
+- In the already-open Playwright window, replace the password with `claims123` and sign in
+- **Resume automation**
+- Replay re-verifies `Patients` on the same `BrowserContext`
 
 ## Development
 
